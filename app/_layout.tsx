@@ -15,10 +15,6 @@ import { StatusBar } from "react-native";
 
 export { ErrorBoundary } from "expo-router";
 
-export const unstable_settings = {
-  initialRouteName: "/",
-};
-
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
@@ -51,12 +47,14 @@ function RootLayoutNav() {
 
   return (
     <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
-      <Stack>
+      <Stack initialRouteName="onboarding">
+        <Stack.Screen name="onboarding" options={{ headerShown: false }} />
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="index" />
+        <Stack.Screen name="register" options={{ headerShown: false }} />
+        <Stack.Screen name="login" options={{ headerShown: false }} />
         <Stack.Screen name="modal" options={{ presentation: "modal" }} />
       </Stack>
-      <StatusBar backgroundColor={"red"} barStyle={"default"} />
+      <StatusBar backgroundColor={"yellow"} barStyle={"default"} />
     </ThemeProvider>
   );
 }

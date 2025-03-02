@@ -1,57 +1,83 @@
-import { StyleSheet, Text, View, Image } from "react-native";
+import { StyleSheet, Text, View, Image, TouchableOpacity } from "react-native";
 import React from "react";
 import OnboardingScreen from "react-native-onboarding-swiper";
 import { useRouter } from "expo-router";
+
 const OnBoarding = () => {
   const router = useRouter();
+
+  const handleDone = () => {
+    router.replace("/register");
+  };
+
+  const handleSkip = () => {
+    router.replace("/(tabs)");
+  };
+
+  const NextButton = ({ ...props }) => (
+    <TouchableOpacity style={styles.button} {...props}>
+      <Text style={styles.buttonText}>Next</Text>
+    </TouchableOpacity>
+  );
+
+  const SkipButton = ({ ...props }) => (
+    <TouchableOpacity style={[styles.button, styles.skipButton]} {...props}>
+      <Text style={[styles.buttonText, { color: "#777" }]}>Skip</Text>
+    </TouchableOpacity>
+  );
+
+  const DoneButton = ({ ...props }) => (
+    <TouchableOpacity style={[styles.button, styles.doneButton]} {...props}>
+      <Text style={[styles.buttonText, { color: "#fff" }]}>Get Started</Text>
+    </TouchableOpacity>
+  );
 
   return (
     <View style={styles.container}>
       <OnboardingScreen
+        NextButtonComponent={NextButton}
+        SkipButtonComponent={SkipButton}
+        DoneButtonComponent={DoneButton}
         onDone={handleDone}
         onSkip={handleSkip}
         pages={[
           {
-            backgroundColor: "#fff",
+            backgroundColor: "#f8f9fa",
             image: (
               <Image
                 source={require("../assets/images/onboarding1.png")}
                 style={styles.image}
               />
             ),
-            title: "All your favorites",
+            title: "All Your Favorites",
             subtitle:
-              "Get all your loved foods in one place, you just place the order, we do the rest.",
+              "Get all your favorite foods in one place. Just place the order, and we do the rest.",
           },
           {
-            backgroundColor: "#fff",
+            backgroundColor: "#f8f9fa",
             image: (
               <Image
                 source={require("../assets/images/onboarding2.png")}
                 style={styles.image}
               />
             ),
-            title: "Order from chosen chef",
+            title: "Order from Top Chefs",
             subtitle:
-              "Get all your loved foods in one place, you just place the order, we do the rest.",
+              "Choose from the best chefs around and enjoy delicious meals anytime.",
           },
           {
-            backgroundColor: "#fff",
+            backgroundColor: "#f8f9fa",
             image: (
               <Image
                 source={require("../assets/images/onboarding3.png")}
                 style={styles.image}
               />
             ),
-            title: "Free delivery offers",
+            title: "Exclusive Free Delivery",
             subtitle:
-              "Get all your loved foods in one place, you just place the order, we do the rest.",
+              "Enjoy free delivery on your first order. Tasty food at your doorstep, hassle-free!",
           },
         ]}
-        nextLabel="NEXT"
-        skipLabel="Skip"
-        showSkip
-        DoneButtonComponent={}
       />
     </View>
   );
@@ -64,8 +90,28 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   image: {
-    width: 250,
-    height: 250,
+    width: 280,
+    height: 280,
     resizeMode: "contain",
+  },
+  button: {
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 25,
+    backgroundColor: "#FF6B6B",
+    marginHorizontal: 10,
+  },
+  buttonText: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "#fff",
+  },
+  skipButton: {
+    backgroundColor: "transparent",
+    borderWidth: 1,
+    borderColor: "#777",
+  },
+  doneButton: {
+    backgroundColor: "#28C76F",
   },
 });
