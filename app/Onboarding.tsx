@@ -1,11 +1,15 @@
 import { StyleSheet, Text, View, Image } from "react-native";
 import React from "react";
 import OnboardingScreen from "react-native-onboarding-swiper";
-
+import { useRouter } from "expo-router";
 const OnBoarding = () => {
+  const router = useRouter();
+
   return (
     <View style={styles.container}>
       <OnboardingScreen
+        onDone={handleDone}
+        onSkip={handleSkip}
         pages={[
           {
             backgroundColor: "#fff",
@@ -47,6 +51,7 @@ const OnBoarding = () => {
         nextLabel="NEXT"
         skipLabel="Skip"
         showSkip
+        DoneButtonComponent={}
       />
     </View>
   );

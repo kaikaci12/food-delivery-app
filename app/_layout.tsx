@@ -1,5 +1,5 @@
 import "../global.css";
-import FontAwesome from "@expo/vector-icons/FontAwesome";
+
 import {
   DarkTheme,
   DefaultTheme,
@@ -9,31 +9,26 @@ import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect } from "react";
-import "react-native-reanimated";
 
 import { useColorScheme } from "@/components/useColorScheme";
 import { StatusBar } from "react-native";
 
-export {
-  // Catch any errors thrown by the Layout component.
-  ErrorBoundary,
-} from "expo-router";
+export { ErrorBoundary } from "expo-router";
 
 export const unstable_settings = {
-  // Ensure that reloading on `/modal` keeps a back button present.
-  initialRouteName: "(tabs)",
+  initialRouteName: "/",
 };
 
-// Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   const [loaded, error] = useFonts({
     SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf"),
-    ...FontAwesome.font,
+    "Sen-Regular": require("../assets/fonts/Sen-Regular.ttf"),
+    "Sen-Bold": require("../assets/fonts/Sen-Bold.ttf"),
+    "Sen-ExtraBold": require("../assets/fonts/Sen-ExtraBold.ttf"),
   });
 
-  // Expo Router uses Error Boundaries to catch errors in the navigation tree.
   useEffect(() => {
     if (error) throw error;
   }, [error]);
@@ -45,7 +40,7 @@ export default function RootLayout() {
   }, [loaded]);
 
   if (!loaded) {
-    return null;
+    return <RootLayoutNav />; // Ensure nothing renders until fonts are loaded
   }
 
   return <RootLayoutNav />;
@@ -58,11 +53,10 @@ function RootLayoutNav() {
     <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
       <Stack>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="index" options={{ headerShown: false }} />
-        <Stack.Screen name="Onboarding" options={{ headerShown: false }} />
+        <Stack.Screen name="index" />
         <Stack.Screen name="modal" options={{ presentation: "modal" }} />
       </Stack>
-      <StatusBar backgroundColor={"red"} />
+      <StatusBar backgroundColor={"red"} barStyle={"default"} />
     </ThemeProvider>
   );
 }
