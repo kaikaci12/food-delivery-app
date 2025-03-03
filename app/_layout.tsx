@@ -1,10 +1,9 @@
-import "../global.css";
-
 import {
   DarkTheme,
   DefaultTheme,
   ThemeProvider,
 } from "@react-navigation/native";
+import AuthProvider from "@/context/AuthProvider";
 import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
@@ -15,9 +14,8 @@ import { StatusBar } from "react-native";
 
 export { ErrorBoundary } from "expo-router";
 
-SplashScreen.preventAutoHideAsync();
-
 export default function RootLayout() {
+  SplashScreen.preventAutoHideAsync();
   const [loaded, error] = useFonts({
     SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf"),
     "Sen-Regular": require("../assets/fonts/Sen-Regular.ttf"),
@@ -30,16 +28,21 @@ export default function RootLayout() {
   }, [error]);
 
   useEffect(() => {
+    SplashScreen.preventAutoHideAsync();
     if (loaded) {
       SplashScreen.hideAsync();
     }
   }, [loaded]);
 
   if (!loaded) {
-    return <RootLayoutNav />; // Ensure nothing renders until fonts are loaded
+    return null; // Ensure nothing renders until fonts are loaded
   }
 
-  return <RootLayoutNav />;
+  return (
+    <AuthProvider>
+      <RootLayoutNav />
+    </AuthProvider>
+  );
 }
 
 function RootLayoutNav() {
@@ -47,8 +50,8 @@ function RootLayoutNav() {
 
   return (
     <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
-      <Stack initialRouteName="onboarding">
-        <Stack.Screen name="onboarding" options={{ headerShown: false }} />
+      <Stack initialRouteName="index">
+        <Stack.Screen name="index" options={{ headerShown: false }} />
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="register" options={{ headerShown: false }} />
         <Stack.Screen name="login" options={{ headerShown: false }} />

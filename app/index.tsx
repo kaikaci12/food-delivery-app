@@ -31,7 +31,9 @@ const OnBoarding = () => {
       <Text style={[styles.buttonText, { color: "#fff" }]}>Get Started</Text>
     </TouchableOpacity>
   );
-
+  const DotComponent = ({ selected }: any) => {
+    return <View style={[styles.dot, selected ? styles.activeDot : null]} />;
+  };
   return (
     <View style={styles.container}>
       <OnboardingScreen
@@ -40,6 +42,7 @@ const OnBoarding = () => {
         DoneButtonComponent={DoneButton}
         onDone={handleDone}
         onSkip={handleSkip}
+        DotComponent={DotComponent}
         pages={[
           {
             backgroundColor: "#f8f9fa",
@@ -113,5 +116,15 @@ const styles = StyleSheet.create({
   },
   doneButton: {
     backgroundColor: "#28C76F",
+  },
+  dot: {
+    width: 10,
+    height: 10,
+    borderRadius: 10,
+    backgroundColor: "#FFE1CE",
+    marginRight: 10,
+  },
+  activeDot: {
+    backgroundColor: "#FF6B6B", // Darker color when active
   },
 });
