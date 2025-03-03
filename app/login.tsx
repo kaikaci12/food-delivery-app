@@ -9,6 +9,7 @@ import {
 import Fontisto from "@expo/vector-icons/Fontisto";
 import { Ionicons } from "@expo/vector-icons";
 import { Link, useRouter } from "expo-router";
+
 const LoginComponent = () => {
   const router = useRouter();
   const [toggleCheckBox, setToggleCheckBox] = useState(false);
