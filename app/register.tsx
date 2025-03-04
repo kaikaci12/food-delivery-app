@@ -9,11 +9,40 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { Link } from "expo-router";
+import { useAuth } from "@/context/AuthProvider";
 
 const SignUp = () => {
   const router = useRouter();
+  const { onRegister } = useAuth(); // Assuming you have onRegister function in context
+
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [confirmPasswordVisible, setConfirmPasswordVisible] = useState(false);
+
+  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+
+  const [validationError, setValidationError] = useState("");
+
+  const handleRegister = async () => {
+    setValidationError("");
+    if (!username || !email || !password || !confirmPassword) {
+      setValidationError("All fields are required.");
+      return;
+    }
+    if (password !== confirmPassword) {
+      setValidationError("Passwords do not match.");
+      return;
+    }
+    try {
+      onRegister!(username, email, password);
+      router.push("/(tabs)");
+    } catch (error: any) {
+      setValidationError("An error occurred. Please try again.");
+      console.log(error.message);
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -29,29 +58,36 @@ const SignUp = () => {
         <Text style={styles.subheading}>Please sign up to get started</Text>
       </View>
 
+      {/* Form Section */}
       <View style={styles.form}>
         <Text style={styles.label}>NAME</Text>
         <TextInput
-          style={styles.input}
+          style={[styles.input, username === "" && styles.errorInput]}
           placeholder="John Doe"
           placeholderTextColor="#999"
+          value={username}
+          onChangeText={setUsername}
         />
 
         <Text style={styles.label}>EMAIL</Text>
         <TextInput
-          style={styles.input}
+          style={[styles.input, email === "" && styles.errorInput]}
           placeholder="example@gmail.com"
           placeholderTextColor="#999"
           keyboardType="email-address"
+          value={email}
+          onChangeText={setEmail}
         />
 
         <Text style={styles.label}>PASSWORD</Text>
         <View style={styles.passwordContainer}>
           <TextInput
-            style={styles.passwordInput}
+            style={[styles.passwordInput, password === "" && styles.errorInput]}
             placeholder="••••••••••"
             placeholderTextColor="#999"
             secureTextEntry={!passwordVisible}
+            value={password}
+            onChangeText={setPassword}
           />
           <TouchableOpacity
             onPress={() => setPasswordVisible(!passwordVisible)}
@@ -67,10 +103,15 @@ const SignUp = () => {
         <Text style={styles.label}>RE-TYPE PASSWORD</Text>
         <View style={styles.passwordContainer}>
           <TextInput
-            style={styles.passwordInput}
+            style={[
+              styles.passwordInput,
+              confirmPassword === "" && styles.errorInput,
+            ]}
             placeholder="••••••••••"
             placeholderTextColor="#999"
             secureTextEntry={!confirmPasswordVisible}
+            value={confirmPassword}
+            onChangeText={setConfirmPassword}
           />
           <TouchableOpacity
             onPress={() => setConfirmPasswordVisible(!confirmPasswordVisible)}
@@ -83,10 +124,18 @@ const SignUp = () => {
           </TouchableOpacity>
         </View>
 
-        <TouchableOpacity style={styles.button}>
+        {/* Error Message */}
+        {validationError ? (
+          <Text style={styles.errorText}>{validationError}</Text>
+        ) : null}
+
+        {/* Register Button */}
+        <TouchableOpacity style={styles.button} onPress={handleRegister}>
           <Text style={styles.buttonText}>SIGN UP</Text>
         </TouchableOpacity>
       </View>
+
+      {/* Login Link */}
       <View style={styles.signupContainer}>
         <Text style={styles.signupText}>Already have an account?</Text>
         <TouchableOpacity>
@@ -162,6 +211,10 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     color: "#000",
   },
+  errorInput: {
+    borderColor: "#FF6B6B",
+    borderWidth: 1,
+  },
   passwordContainer: {
     flexDirection: "row",
     alignItems: "center",
@@ -203,5 +256,12 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: "#FF6B6B",
     fontWeight: "bold",
+  },
+  errorText: {
+    fontSize: 14,
+    color: "#FF6B6B",
+    fontWeight: "bold",
+    marginBottom: 10,
+    textAlign: "center",
   },
 });

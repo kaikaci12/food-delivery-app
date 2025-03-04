@@ -20,6 +20,7 @@ const LoginComponent = () => {
       // will execute in future
     }
   };
+
   return (
     <View style={styles.container}>
       <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>

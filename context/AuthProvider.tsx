@@ -26,7 +26,6 @@ const AuthProvider = ({ children }: any) => {
           const token = await user.getIdToken();
           const userRef = doc(db, "users", user.uid);
 
-          // Subscribe to real-time Firestore updates
           const unsubscribeFirestore = onSnapshot(userRef, (docSnap) => {
             if (docSnap.exists()) {
               setAuthState({
@@ -45,7 +44,7 @@ const AuthProvider = ({ children }: any) => {
       }
     });
 
-    return () => unsubscribeAuth(); // Cleanup auth listener
+    return () => unsubscribeAuth();
   }, []);
   const register = async (
     username: string,
