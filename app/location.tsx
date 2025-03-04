@@ -7,6 +7,7 @@ import {
   ActivityIndicator,
   Image,
 } from "react-native";
+import MapView, { Marker } from "react-native-maps";
 import * as Location from "expo-location";
 import { Ionicons } from "@expo/vector-icons";
 
@@ -16,7 +17,7 @@ const LocationScreen = () => {
   );
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
-
+  const [mapRegion, setMapRegion] = useState<any>();
   const requestLocation = async () => {
     setLoading(true);
     setErrorMsg(null);
@@ -29,8 +30,15 @@ const LocationScreen = () => {
     }
 
     try {
-      const userLocation = await Location.getCurrentPositionAsync({});
+      let userLocation = await Location.getCurrentPositionAsync({});
       setLocation(userLocation);
+      setMapRegion({
+        latitude: location?.coords.latitude,
+        longtitude: location?.coords.longitude,
+        latitudeDelta: 0.0922,
+        longtitudeDelta: 0.0421,
+      });
+      console.log("Location :", location);
     } catch (error) {
       setErrorMsg("Unable to retrieve location. Please try again.");
     }
@@ -70,6 +78,11 @@ const LocationScreen = () => {
       </Text>
 
       {errorMsg && <Text style={styles.errorText}>{errorMsg}</Text>}
+      {location && (
+        <MapView region={mapRegion} style={styles.map}>
+          <Marker coordinate={mapRegion} title="Marker" />
+        </MapView>
+      )}
     </View>
   );
 };
@@ -118,5 +131,9 @@ const styles = StyleSheet.create({
     fontSize: 14,
     marginTop: 10,
     paddingHorizontal: 10,
+  },
+  map: {
+    width: 200,
+    height: 200,
   },
 });

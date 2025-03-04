@@ -8,6 +8,7 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
+import { Link } from "expo-router";
 
 const SignUp = () => {
   const router = useRouter();
@@ -19,7 +20,7 @@ const SignUp = () => {
       {/* Header Section */}
       <View style={styles.header}>
         <TouchableOpacity
-          onPress={() => router.back()}
+          onPress={() => router.push("/")}
           style={styles.backButton}
         >
           <Ionicons name="arrow-back" size={24} color="#000" />
@@ -82,9 +83,16 @@ const SignUp = () => {
           </TouchableOpacity>
         </View>
 
-        {/* Sign Up Button */}
         <TouchableOpacity style={styles.button}>
           <Text style={styles.buttonText}>SIGN UP</Text>
+        </TouchableOpacity>
+      </View>
+      <View style={styles.signupContainer}>
+        <Text style={styles.signupText}>Already have an account?</Text>
+        <TouchableOpacity>
+          <Link href="/login">
+            <Text style={styles.signupLink}> LOG IN</Text>
+          </Link>
         </TouchableOpacity>
       </View>
     </View>
@@ -181,5 +189,19 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "bold",
     color: "#fff",
+  },
+  signupContainer: {
+    flexDirection: "row",
+    justifyContent: "center",
+    marginTop: 10,
+  },
+  signupText: {
+    fontSize: 16,
+    color: "#777",
+  },
+  signupLink: {
+    fontSize: 16,
+    color: "#FF6B6B",
+    fontWeight: "bold",
   },
 });

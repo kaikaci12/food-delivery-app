@@ -11,7 +11,7 @@ const OnBoarding = () => {
   };
 
   const handleSkip = () => {
-    router.replace("/(tabs)");
+    router.replace("/register");
   };
 
   const NextButton = ({ ...props }) => (
@@ -37,6 +37,8 @@ const OnBoarding = () => {
   return (
     <View style={styles.container}>
       <OnboardingScreen
+        containerStyles={styles.onboarding}
+        bottomBarColor="white"
         NextButtonComponent={NextButton}
         SkipButtonComponent={SkipButton}
         DoneButtonComponent={DoneButton}
@@ -97,6 +99,7 @@ const styles = StyleSheet.create({
     height: 280,
     resizeMode: "contain",
   },
+  onboarding: {},
   button: {
     paddingVertical: 12,
     paddingHorizontal: 24,
