@@ -1,43 +1,47 @@
 import { StyleSheet } from "react-native";
-
-import EditScreenInfo from "@/components/EditScreenInfo";
 import { Text, View } from "@/components/Themed";
-import Feather from "@expo/vector-icons/Feather";
 import HeaderBar from "@/components/HeaderBar";
-import { SafeAreaView } from "react-native-safe-area-context";
+
 import { useAuth } from "@/context/AuthProvider";
 import { useEffect, useState } from "react";
 import { useRouter } from "expo-router";
+import { UserProfile } from "@/types";
+import Search from "@/components/Search";
+import Categories from "@/components/Categories";
 export default function TabOneScreen() {
-  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [currentUser, setCurrentUser] = useState<UserProfile>();
   const router = useRouter();
   const { authState } = useAuth();
   useEffect(() => {
     if (!authState.token || !authState.user) {
       router.replace("/login");
+      return;
     }
-  });
+    setCurrentUser(authState.user);
+  }, [authState]);
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       <HeaderBar />
-      <Text>Hey {}, Good Afternoon!</Text>
-    </SafeAreaView>
+      <Text style={styles.title}>
+        Hey {currentUser?.username}, Good Afternoon!
+      </Text>
+      <Search />
+      <Categories />
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    alignItems: "center",
+
+    paddingVertical: 24,
+    paddingHorizontal: 24,
   },
   title: {
     fontSize: 20,
     fontWeight: "bold",
-  },
-  separator: {
-    marginVertical: 30,
-    height: 1,
-    width: "80%",
+    marginBottom: 16,
   },
 });

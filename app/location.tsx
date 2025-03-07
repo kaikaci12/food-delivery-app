@@ -24,23 +24,29 @@ const LocationScreen = () => {
     setLoading(true);
     setErrorMsg(null);
 
-    const { status } = await Location.getForegroundPermissionsAsync();
-
+    // Request permission properly
+    let { status } = await Location.requestForegroundPermissionsAsync();
+    router.replace("/Dashboard");
     if (status !== "granted") {
       setErrorMsg("Location permission is required to continue.");
       setLoading(false);
+      return;
     }
 
     try {
-      let userLocation = await Location.getCurrentPositionAsync({});
+      router.replace("/Dashboard");
+      let userLocation = await Location.getCurrentPositionAsync();
+
       setLocation(userLocation);
       setMapRegion({
-        latitude: location?.coords.latitude,
-        longtitude: location?.coords.longitude,
+        latitude: userLocation.coords.latitude,
+        longitude: userLocation.coords.longitude,
         latitudeDelta: 0.0922,
-        longtitudeDelta: 0.0421,
+        longitudeDelta: 0.0421,
       });
-      console.log("Location :", location);
+
+      console.log("Location:", userLocation);
+      router.replace("/Dashboard");
     } catch (error) {
       setErrorMsg("Unable to retrieve location. Please try again.");
     }

@@ -39,8 +39,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingHorizontal: 15,
-    paddingVertical: 10,
+    marginBottom: 16,
     backgroundColor: "white",
   },
   menuButton: {
