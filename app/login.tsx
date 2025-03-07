@@ -5,19 +5,52 @@ import {
   View,
   TextInput,
   TouchableOpacity,
+  Alert,
 } from "react-native";
 import Fontisto from "@expo/vector-icons/Fontisto";
 import { Ionicons } from "@expo/vector-icons";
 import { Link, useRouter } from "expo-router";
+import { getAuth, signInWithEmailAndPassword } from "firebase/auth"; // Firebase import
+import { useAuth } from "@/context/AuthProvider";
 
 const LoginComponent = () => {
+  const { onLogin, authState } = useAuth();
   const router = useRouter();
-  const [toggleCheckBox, setToggleCheckBox] = useState(false);
+  const [email, setEmail] = useState(""); // Email state
+  const [password, setPassword] = useState(""); // Password state
+  const [toggleCheckBox, setToggleCheckBox] = useState(false); // Remember me state
+  const [loading, setLoading] = useState(false); // Loading state
+  const [error, setError] = useState(""); // Error state
 
   const handleRememberMe = () => {
     setToggleCheckBox((prev) => !prev);
-    if (toggleCheckBox) {
-      // will execute in future
+  };
+
+  const handleLogin = async () => {
+    if (!email || !password) {
+      setError("Please enter both email and password.");
+      return;
+    }
+
+    setLoading(true);
+    setError(""); // Reset error
+
+    try {
+      await onLogin(email, password);
+      alert("Logged In Successfully ✅");
+      router.replace("/location"); // Ensures users can't navigate back to login
+    } catch (error: any) {
+      const errorMessage = error.message || "An unexpected error occurred.";
+
+      if (errorMessage.includes("invalid-credential")) {
+        alert("Invalid Credentials ❌");
+      } else if (errorMessage.includes("too-many-requests")) {
+        alert("Too many failed login attempts. Please try again later.");
+      } else {
+        setError(errorMessage);
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -26,6 +59,7 @@ const LoginComponent = () => {
       <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
         <Ionicons name="arrow-back" size={24} color="#000" />
       </TouchableOpacity>
+
       {/* Top Dark Section */}
       <View style={styles.header}>
         <Text style={styles.heading}>Log In</Text>
@@ -43,6 +77,8 @@ const LoginComponent = () => {
           placeholder="example@gmail.com"
           placeholderTextColor="#aaa"
           keyboardType="email-address"
+          value={email}
+          onChangeText={setEmail}
         />
 
         {/* Password Input */}
@@ -52,7 +88,12 @@ const LoginComponent = () => {
           placeholder="•••••••••••"
           placeholderTextColor="#aaa"
           secureTextEntry
+          value={password}
+          onChangeText={setPassword}
         />
+
+        {/* Error Message */}
+        {error && <Text style={styles.errorText}>{error}</Text>}
 
         {/* Remember Me & Forgot Password */}
         <View style={styles.optionsContainer}>
@@ -62,7 +103,6 @@ const LoginComponent = () => {
             ) : (
               <Fontisto name="checkbox-active" size={24} color="black" />
             )}
-
             <Text style={styles.optionText}>Remember me</Text>
           </TouchableOpacity>
           <TouchableOpacity>
@@ -71,8 +111,14 @@ const LoginComponent = () => {
         </View>
 
         {/* Login Button */}
-        <TouchableOpacity style={styles.button}>
-          <Text style={styles.buttonText}>LOG IN</Text>
+        <TouchableOpacity
+          style={styles.button}
+          onPress={handleLogin}
+          disabled={loading} // Disable button when loading
+        >
+          <Text style={styles.buttonText}>
+            {loading ? "Logging In..." : "LOG IN"}
+          </Text>
         </TouchableOpacity>
 
         {/* Sign Up Link */}
@@ -195,5 +241,11 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     borderRadius: 20,
     padding: 10,
+  },
+  errorText: {
+    color: "red",
+    fontSize: 14,
+    marginBottom: 10,
+    textAlign: "center",
   },
 });

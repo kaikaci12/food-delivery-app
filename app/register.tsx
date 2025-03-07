@@ -24,8 +24,10 @@ const SignUp = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
 
   const [validationError, setValidationError] = useState("");
+  const [isSubmitted, setIsSubmitted] = useState(false); // To track if the form was submitted
 
   const handleRegister = async () => {
+    setIsSubmitted(true); // Mark as submitted
     setValidationError("");
     if (!username || !email || !password || !confirmPassword) {
       setValidationError("All fields are required.");
@@ -36,8 +38,10 @@ const SignUp = () => {
       return;
     }
     try {
-      onRegister!(username, email, password);
-      router.push("/(tabs)");
+      await onRegister!(username, email, password);
+
+      alert("Registered Successfully ✅");
+      router.push("/location");
     } catch (error: any) {
       setValidationError("An error occurred. Please try again.");
       console.log(error.message);
@@ -62,7 +66,10 @@ const SignUp = () => {
       <View style={styles.form}>
         <Text style={styles.label}>NAME</Text>
         <TextInput
-          style={[styles.input, username === "" && styles.errorInput]}
+          style={[
+            styles.input,
+            isSubmitted && !username && validationError && styles.errorInput,
+          ]}
           placeholder="John Doe"
           placeholderTextColor="#999"
           value={username}
@@ -71,7 +78,10 @@ const SignUp = () => {
 
         <Text style={styles.label}>EMAIL</Text>
         <TextInput
-          style={[styles.input, email === "" && styles.errorInput]}
+          style={[
+            styles.input,
+            isSubmitted && !email && validationError && styles.errorInput,
+          ]}
           placeholder="example@gmail.com"
           placeholderTextColor="#999"
           keyboardType="email-address"
@@ -82,7 +92,10 @@ const SignUp = () => {
         <Text style={styles.label}>PASSWORD</Text>
         <View style={styles.passwordContainer}>
           <TextInput
-            style={[styles.passwordInput, password === "" && styles.errorInput]}
+            style={[
+              styles.passwordInput,
+              isSubmitted && !password && validationError && styles.errorInput,
+            ]}
             placeholder="••••••••••"
             placeholderTextColor="#999"
             secureTextEntry={!passwordVisible}
@@ -105,7 +118,10 @@ const SignUp = () => {
           <TextInput
             style={[
               styles.passwordInput,
-              confirmPassword === "" && styles.errorInput,
+              isSubmitted &&
+                !confirmPassword &&
+                validationError &&
+                styles.errorInput,
             ]}
             placeholder="••••••••••"
             placeholderTextColor="#999"

@@ -11,7 +11,7 @@ const OnBoarding = () => {
   };
 
   const handleSkip = () => {
-    router.replace("/register");
+    router.replace("/login");
   };
 
   const NextButton = ({ ...props }) => (

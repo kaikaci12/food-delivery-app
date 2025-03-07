@@ -10,11 +10,13 @@ import {
 import MapView, { Marker } from "react-native-maps";
 import * as Location from "expo-location";
 import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
 
 const LocationScreen = () => {
   const [location, setLocation] = useState<Location.LocationObject | null>(
     null
   );
+  const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [mapRegion, setMapRegion] = useState<any>();
@@ -22,11 +24,11 @@ const LocationScreen = () => {
     setLoading(true);
     setErrorMsg(null);
 
-    const { status } = await Location.requestForegroundPermissionsAsync();
+    const { status } = await Location.getForegroundPermissionsAsync();
+
     if (status !== "granted") {
       setErrorMsg("Location permission is required to continue.");
       setLoading(false);
-      return;
     }
 
     try {
@@ -55,7 +57,6 @@ const LocationScreen = () => {
         resizeMode="contain"
       />
 
-      {/* Location Access Button */}
       <TouchableOpacity
         style={styles.button}
         onPress={requestLocation}

@@ -19,6 +19,7 @@ const AuthProvider = ({ children }: any) => {
     token: null,
     user: null,
   });
+
   useEffect(() => {
     const unsubscribeAuth = onAuthStateChanged(auth, async (user) => {
       if (user) {
@@ -31,6 +32,11 @@ const AuthProvider = ({ children }: any) => {
               setAuthState({
                 token,
                 user: { uid: user.uid, email: user.email, ...docSnap.data() },
+              });
+              console.log("stored user: ", {
+                uid: user.uid,
+                email: user.email,
+                ...docSnap.data(),
               });
             }
           });
@@ -46,6 +52,7 @@ const AuthProvider = ({ children }: any) => {
 
     return () => unsubscribeAuth();
   }, []);
+
   const register = async (
     username: string,
     email: string,
@@ -65,23 +72,21 @@ const AuthProvider = ({ children }: any) => {
         uid: user.uid,
         username,
         email,
-        createdAt: new Date(),
+        createdAt: new Date().toISOString(),
       };
+
       await setDoc(userRef, userProfile);
+      return;
     } catch (error: any) {
       console.log(error.messsage);
+      throw new Error(error.message);
     }
   };
   const login = async (email: string, password: string) => {
     try {
-      const userCredential = await signInWithEmailAndPassword(
-        auth,
-        email,
-        password
-      );
-      const user = userCredential.user;
+      await signInWithEmailAndPassword(auth, email, password);
     } catch (error: any) {
-      console.log(error.message);
+      throw new Error(error.message);
     }
   };
   const logOut = async () => {
