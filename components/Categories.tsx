@@ -6,7 +6,7 @@ const Categories = () => {
   const [categories, setCategories] = useState([
     { name: "All", image: require("../assets/categories/fire.png") },
     {
-      name: "Fish",
+      name: "Deserts",
       image: require("../assets/categories/icons8-tropical-fish-96.png"),
     },
     {
@@ -26,6 +26,7 @@ const Categories = () => {
 
   return (
     <View>
+      <Text style={styles.title}>All Categories</Text>
       <ScrollView horizontal>
         {categories.map((category) => (
           <TouchableOpacity
@@ -65,6 +66,11 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 5 },
+  },
+  title: {
+    fontSize: 20,
+    fontWeight: "bold",
+    marginBottom: 16,
   },
   activeCategory: {
     backgroundColor: "#FFA500", // Smooth orange gradient for active category

@@ -10,6 +10,7 @@ import {
   signOut,
 } from "firebase/auth";
 import { db } from "@/firebaseConfig";
+import * as SecureStore from "expo-secure-store";
 import { getDoc, setDoc, doc, onSnapshot } from "firebase/firestore";
 const AuthProvider = ({ children }: any) => {
   const [authState, setAuthState] = useState<{
@@ -84,7 +85,13 @@ const AuthProvider = ({ children }: any) => {
   };
   const login = async (email: string, password: string) => {
     try {
-      await signInWithEmailAndPassword(auth, email, password);
+      const userCredentials = await signInWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
+      const token = await userCredentials.user.getIdToken();
+      SecureStore.setItem("mjwt", token);
     } catch (error: any) {
       throw new Error(error.message);
     }

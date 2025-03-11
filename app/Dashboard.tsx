@@ -1,5 +1,5 @@
-import { StyleSheet } from "react-native";
-import { Text, View } from "@/components/Themed";
+import { StyleSheet, Text, View, Image } from "react-native";
+
 import HeaderBar from "@/components/HeaderBar";
 
 import { useAuth } from "@/context/AuthProvider";
@@ -10,6 +10,7 @@ import Search from "@/components/Search";
 import Categories from "@/components/Categories";
 export default function TabOneScreen() {
   const [currentUser, setCurrentUser] = useState<UserProfile>();
+  const [foodItems, setFoodItems] = useState([]);
   const router = useRouter();
   const { authState } = useAuth();
   useEffect(() => {
@@ -18,6 +19,20 @@ export default function TabOneScreen() {
       return;
     }
     setCurrentUser(authState.user);
+  }, [authState]);
+  useEffect(() => {
+    const fetchFoodItems = async () => {
+      try {
+        const response = await fetch(
+          "https://dummyjson.com/c/479f-e93b-4cd5-9b07"
+        );
+        const data = await response.json();
+        setFoodItems(data);
+      } catch (error) {
+        console.log(error);
+      }
+    };
+    fetchFoodItems();
   }, [authState]);
 
   return (
@@ -28,6 +43,12 @@ export default function TabOneScreen() {
       </Text>
       <Search />
       <Categories />
+      {foodItems.map((item: any, index: number) => (
+        <View key={index}>
+          <Text>{item.name}</Text>
+          <Image src={item.image} />
+        </View>
+      ))}
     </View>
   );
 }
@@ -35,7 +56,6 @@ export default function TabOneScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-
     paddingVertical: 24,
     paddingHorizontal: 24,
   },
