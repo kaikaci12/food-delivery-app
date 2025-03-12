@@ -1,0 +1,290 @@
+[
+  {
+    "id": 1,
+    "name": "Classic Margherita Pizza",
+    "image": "https://cdn.dummyjson.com/recipe-images/1.webp",
+    "price": 12.99,
+    "rating": 4.6,
+    "deliverytime": "30-40 mins",
+    "category": "pizza"
+  },
+  {
+    "id": 2,
+    "name": "Pepperoni Pizza",
+    "image": "https://cdn.dummyjson.com/recipe-images/2.webp",
+    "price": 13.49,
+    "rating": 4.7,
+    "deliverytime": "30-40 mins",
+    "category": "pizza"
+  },
+  {
+    "id": 3,
+    "name": "BBQ Chicken Pizza",
+    "image": "https://cdn.dummyjson.com/recipe-images/3.webp",
+    "price": 14.99,
+    "rating": 4.8,
+    "deliverytime": "35-45 mins",
+    "category": "pizza"
+  },
+  {
+    "id": 4,
+    "name": "Classic Cheeseburger",
+    "image": "https://cdn.dummyjson.com/recipe-images/4.webp",
+    "price": 9.99,
+    "rating": 4.6,
+    "deliverytime": "15-25 mins",
+    "category": "burgers"
+  },
+  {
+    "id": 5,
+    "name": "Bacon Burger",
+    "image": "https://cdn.dummyjson.com/recipe-images/5.webp",
+    "price": 10.49,
+    "rating": 4.7,
+    "deliverytime": "15-25 mins",
+    "category": "burgers"
+  },
+  {
+    "id": 6,
+    "name": "Double Cheeseburger",
+    "image": "https://cdn.dummyjson.com/recipe-images/6.webp",
+    "price": 11.49,
+    "rating": 4.8,
+    "deliverytime": "20-30 mins",
+    "category": "burgers"
+  },
+  {
+    "id": 7,
+    "name": "Spicy Burger",
+    "image": "https://cdn.dummyjson.com/recipe-images/7.webp",
+    "price": 10.99,
+    "rating": 4.5,
+    "deliverytime": "20-30 mins",
+    "category": "burgers"
+  },
+  {
+    "id": 8,
+    "name": "Chocolate Chip Cookies",
+    "image": "https://cdn.dummyjson.com/recipe-images/8.webp",
+    "price": 5.49,
+    "rating": 4.8,
+    "deliverytime": "20-30 mins",
+    "category": "desserts"
+  },
+  {
+    "id": 9,
+    "name": "Tiramisu",
+    "image": "https://cdn.dummyjson.com/recipe-images/9.webp",
+    "price": 6.99,
+    "rating": 4.9,
+    "deliverytime": "15-25 mins",
+    "category": "desserts"
+  },
+  {
+    "id": 10,
+    "name": "Brownie Sundae",
+    "image": "https://cdn.dummyjson.com/recipe-images/10.webp",
+    "price": 7.49,
+    "rating": 4.7,
+    "deliverytime": "15-25 mins",
+    "category": "desserts"
+  },
+  {
+    "id": 11,
+    "name": "Ice Cream Sundae",
+    "image": "https://cdn.dummyjson.com/recipe-images/11.webp",
+    "price": 6.49,
+    "rating": 4.6,
+    "deliverytime": "10-20 mins",
+    "category": "desserts"
+  },
+  {
+    "id": 12,
+    "name": "Fruit Tart",
+    "image": "https://cdn.dummyjson.com/recipe-images/12.webp",
+    "price": 7.99,
+    "rating": 4.5,
+    "deliverytime": "15-25 mins",
+    "category": "desserts"
+  },
+  {
+    "id": 13,
+    "name": "Lemon Meringue Pie",
+    "image": "https://cdn.dummyjson.com/recipe-images/13.webp",
+    "price": 6.99,
+    "rating": 4.4,
+    "deliverytime": "15-25 mins",
+    "category": "desserts"
+  },
+  {
+    "id": 14,
+    "name": "Cheesecake",
+    "image": "https://cdn.dummyjson.com/recipe-images/14.webp",
+    "price": 7.49,
+    "rating": 4.8,
+    "deliverytime": "15-25 mins",
+    "category": "desserts"
+  },
+  {
+    "id": 15,
+    "name": "Apple Pie",
+    "image": "https://cdn.dummyjson.com/recipe-images/15.webp",
+    "price": 6.99,
+    "rating": 4.6,
+    "deliverytime": "15-25 mins",
+    "category": "desserts"
+  },
+  {
+    "id": 16,
+    "name": "Strawberry Shortcake",
+    "image": "https://cdn.dummyjson.com/recipe-images/16.webp",
+    "price": 7.99,
+    "rating": 4.7,
+    "deliverytime": "15-25 mins",
+    "category": "desserts"
+  },
+  {
+    "id": 17,
+    "name": "Caramel Pudding",
+    "image": "https://cdn.dummyjson.com/recipe-images/17.webp",
+    "price": 5.99,
+    "rating": 4.5,
+    "deliverytime": "10-20 mins",
+    "category": "desserts"
+  },
+  {
+    "id": 18,
+    "name": "Chocolate Lava Cake",
+    "image": "https://cdn.dummyjson.com/recipe-images/18.webp",
+    "price": 8.49,
+    "rating": 4.9,
+    "deliverytime": "20-30 mins",
+    "category": "desserts"
+  },
+  {
+    "id": 19,
+    "name": "Vanilla Bean Ice Cream",
+    "image": "https://cdn.dummyjson.com/recipe-images/19.webp",
+    "price": 4.99,
+    "rating": 4.6,
+    "deliverytime": "10-20 mins",
+    "category": "desserts"
+  },
+  {
+    "id": 20,
+    "name": "Blueberry Muffins",
+    "image": "https://cdn.dummyjson.com/recipe-images/20.webp",
+    "price": 5.49,
+    "rating": 4.7,
+    "deliverytime": "15-25 mins",
+    "category": "desserts"
+  },
+  {
+    "id": 21,
+    "name": "Raspberry Sorbet",
+    "image": "https://cdn.dummyjson.com/recipe-images/21.webp",
+    "price": 6.29,
+    "rating": 4.5,
+    "deliverytime": "10-20 mins",
+    "category": "desserts"
+  },
+  {
+    "id": 22,
+    "name": "Banana Split",
+    "image": "https://cdn.dummyjson.com/recipe-images/22.webp",
+    "price": 7.49,
+    "rating": 4.8,
+    "deliverytime": "15-25 mins",
+    "category": "desserts"
+  },
+  {
+    "id": 23,
+    "name": "Hawaiian Pizza",
+    "image": "https://cdn.dummyjson.com/recipe-images/23.webp",
+    "price": 13.99,
+    "rating": 4.5,
+    "deliverytime": "30-40 mins",
+    "category": "pizza"
+  },
+  {
+    "id": 24,
+    "name": "Meat Lovers Pizza",
+    "image": "https://cdn.dummyjson.com/recipe-images/24.webp",
+    "price": 15.49,
+    "rating": 4.8,
+    "deliverytime": "35-45 mins",
+    "category": "pizza"
+  },
+  {
+    "id": 25,
+    "name": "Veggie Delight Pizza",
+    "image": "https://cdn.dummyjson.com/recipe-images/25.webp",
+    "price": 12.99,
+    "rating": 4.7,
+    "deliverytime": "30-40 mins",
+    "category": "pizza"
+  },
+  {
+    "id": 26,
+    "name": "Truffle Mushroom Burger",
+    "image": "https://cdn.dummyjson.com/recipe-images/26.webp",
+    "price": 11.99,
+    "rating": 4.6,
+    "deliverytime": "20-30 mins",
+    "category": "burgers"
+  },
+  {
+    "id": 27,
+    "name": "Crispy Chicken Burger",
+    "image": "https://cdn.dummyjson.com/recipe-images/27.webp",
+    "price": 10.99,
+    "rating": 4.7,
+    "deliverytime": "15-25 mins",
+    "category": "burgers"
+  },
+  {
+    "id": 28,
+    "name": "Fish Fillet Burger",
+    "image": "https://cdn.dummyjson.com/recipe-images/28.webp",
+    "price": 10.49,
+    "rating": 4.5,
+    "deliverytime": "15-25 mins",
+    "category": "burgers"
+  },
+  {
+    "id": 29,
+    "name": "Red Velvet Cake",
+    "image": "https://cdn.dummyjson.com/recipe-images/29.webp",
+    "price": 7.99,
+    "rating": 4.9,
+    "deliverytime": "20-30 mins",
+    "category": "desserts"
+  },
+  {
+    "id": 30,
+    "name": "Chocolate Fudge Cake",
+    "image": "https://cdn.dummyjson.com/recipe-images/30.webp",
+    "price": 8.49,
+    "rating": 4.8,
+    "deliverytime": "20-30 mins",
+    "category": "desserts"
+  },
+  {
+    "id": 31,
+    "name": "Peach Cobbler",
+    "image": "https://cdn.dummyjson.com/recipe-images/31.webp",
+    "price": 7.49,
+    "rating": 4.6,
+    "deliverytime": "15-25 mins",
+    "category": "desserts"
+  },
+  {
+    "id": 32,
+    "name": "Macaron Assortment",
+    "image": "https://cdn.dummyjson.com/recipe-images/32.webp",
+    "price": 9.99,
+    "rating": 4.9,
+    "deliverytime": "10-20 mins",
+    "category": "desserts"
+  }
+]
