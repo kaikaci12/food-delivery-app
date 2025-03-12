@@ -14,7 +14,7 @@ import { Link, useRouter } from "expo-router";
 import { UserProfile } from "@/types";
 import Search from "@/components/Search";
 import Categories from "@/components/Categories";
-
+import { useCart } from "@/context/CartProvider";
 export default function TabOneScreen() {
   const [currentUser, setCurrentUser] = useState<UserProfile>();
   const [foodItems, setFoodItems] = useState([]);
@@ -23,6 +23,7 @@ export default function TabOneScreen() {
   const [category, setCategory] = useState("All");
   const router = useRouter();
   const { authState } = useAuth();
+  const { handleAddToCart } = useCart();
 
   useEffect(() => {
     if (!authState.token || !authState.user) {
@@ -101,7 +102,14 @@ export default function TabOneScreen() {
               <Text style={styles.price}>${item.price}</Text>
             </Link>
 
-            <TouchableOpacity style={styles.addButton}>
+            <TouchableOpacity
+              onPress={async () => {
+                await handleAddToCart(item);
+
+                alert("Added to cart");
+              }}
+              style={styles.addButton}
+            >
               <AntDesign name="plus" size={18} color="white" />
             </TouchableOpacity>
           </View>
