@@ -47,7 +47,7 @@ function RootLayoutNav() {
   const router = useRouter();
   useEffect(() => {
     if (!authState.token && !authState.user) {
-      router.replace("/login");
+      router.replace("/Dashboard");
     } else {
       router.replace("/Dashboard");
     }
@@ -63,6 +63,7 @@ function RootLayoutNav() {
           <Stack.Screen name="register" options={{ headerShown: false }} />
           <Stack.Screen name="login" options={{ headerShown: false }} />
           <Stack.Screen name="location" options={{ headerShown: false }} />
+          <Stack.Screen name="meal" options={{ headerShown: false }} />
           <Stack.Screen name="modal" options={{ presentation: "modal" }} />
         </Stack>
       </ThemeProvider>

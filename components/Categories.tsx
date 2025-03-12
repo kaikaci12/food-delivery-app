@@ -1,13 +1,17 @@
 import { StyleSheet, Text, View, TouchableOpacity, Image } from "react-native";
 import React, { useState } from "react";
 import { ScrollView } from "react-native";
-
-const Categories = () => {
+interface CategoryProps {
+  handleCategory: (categoryName: string) => void;
+  setActive: (categoryName: string) => void;
+  active: string;
+}
+const Categories = ({ handleCategory, active, setActive }: CategoryProps) => {
   const [categories, setCategories] = useState([
     { name: "All", image: require("../assets/categories/fire.png") },
     {
       name: "Deserts",
-      image: require("../assets/categories/icons8-tropical-fish-96.png"),
+      image: require("../assets/categories/dessert.png"),
     },
     {
       name: "Burgers",
@@ -18,14 +22,9 @@ const Categories = () => {
       image: require("../assets/categories/icons8-pizza-96.png"),
     },
   ]);
-  const [active, setActive] = useState("All");
-
-  const toggleCheckbox = (categoryName: string) => {
-    setActive(categoryName);
-  };
 
   return (
-    <View>
+    <View style={{ marginBottom: 15 }}>
       <Text style={styles.title}>All Categories</Text>
       <ScrollView horizontal>
         {categories.map((category) => (
@@ -35,7 +34,7 @@ const Categories = () => {
               styles.categoryItem,
               active === category.name && styles.activeCategory,
             ]}
-            onPress={() => toggleCheckbox(category.name)}
+            onPress={() => handleCategory(category.name)}
           >
             <Image source={category.image} style={styles.categoryImage} />
             <Text

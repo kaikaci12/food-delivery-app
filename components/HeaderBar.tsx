@@ -40,7 +40,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     marginBottom: 16,
-    backgroundColor: "white",
   },
   menuButton: {
     width: 36,

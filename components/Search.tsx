@@ -1,8 +1,13 @@
 import React from "react";
+import { useState } from "react";
 import { View, TextInput, StyleSheet } from "react-native";
 import { FontAwesome } from "@expo/vector-icons";
+interface SearchProps {
+  handleSearch: (searchTerm: string) => void;
+}
+const Search = ({ handleSearch }: SearchProps) => {
+  const [searchTerm, setSearchTerm] = useState("");
 
-const Search = () => {
   return (
     <View style={styles.container}>
       <FontAwesome
@@ -12,6 +17,8 @@ const Search = () => {
         style={styles.icon}
       />
       <TextInput
+        onChangeText={setSearchTerm}
+        value={searchTerm}
         style={styles.input}
         placeholder="Search dishes, restaurants"
         placeholderTextColor="#A0A0A0"
