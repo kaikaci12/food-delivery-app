@@ -7,19 +7,26 @@ import {
   ActivityIndicator,
   StyleSheet,
 } from "react-native";
-import { usePathname } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import Feather from "@expo/vector-icons/Feather";
+import AntDesign from "@expo/vector-icons/AntDesign";
+import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
 
 const Meal = () => {
-  const { id } = usePathname();
+  const { id } = useLocalSearchParams();
+  const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [foodData, setFoodData] = useState<any>([]);
 
   useEffect(() => {
     const fetchFoodItems = async () => {
       try {
-        const response = await fetch("https://dummyjson.com/recipes");
+        const response = await fetch(
+          "https://dummyjson.com/c/479f-e93b-4cd5-9b07"
+        );
         const data = await response.json();
-        const filteredData = data.recipes.find((item): any => item.id == id);
+        const filteredData = data.find((item: { id: string }) => item.id == id);
         setFoodData(filteredData);
         setLoading(false);
       } catch (error) {
@@ -39,29 +46,45 @@ const Meal = () => {
   if (!foodData) {
     return <Text style={styles.errorText}>Food item not found</Text>;
   }
-
+  const handleAddToCart = async () => {
+    try {
+      const cartItem = {
+        id: foodData.id,
+        name: foodData.name,
+        price: foodData.price,
+        image: foodData.image,
+        quantity: 1,
+      };
+      await AsyncStorage.setItem("cart", JSON.stringify(cartItem));
+      console.log("Item added to cart", cartItem);
+      alert("Item added to cart");
+    } catch (error) {
+      console.log(error);
+    }
+  };
   return (
     <View style={styles.container}>
+      <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+        <Feather name="arrow-left" size={24} color="black" />
+      </TouchableOpacity>
       <Image source={{ uri: foodData.image }} style={styles.image} />
       <Text style={styles.title}>{foodData.name}</Text>
-      <Text style={styles.subText}>{foodData.category}</Text>
+
       <View style={styles.detailsRow}>
-        <Text style={styles.rating}>⭐ {foodData.rating}</Text>
-        <Text style={styles.delivery}>🚚 {foodData.deliverytime}</Text>
+        <Text style={styles.rating}>
+          <AntDesign name="star" size={16} color="orange" /> {foodData.rating}
+        </Text>
+        <Text style={styles.rating}>
+          <FontAwesome5 name="truck" size={16} color="orange" /> Free
+        </Text>
+        <Text style={styles.delivery}>
+          <AntDesign name="clockcircle" size={16} color="orange" />{" "}
+          {foodData.deliverytime}
+        </Text>
       </View>
-      <View style={styles.sizeContainer}>
-        <TouchableOpacity style={styles.sizeButton}>
-          <Text>10"</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={[styles.sizeButton, styles.selectedSize]}>
-          <Text>14"</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.sizeButton}>
-          <Text>16"</Text>
-        </TouchableOpacity>
-      </View>
+
       <Text style={styles.price}>${foodData.price}</Text>
-      <TouchableOpacity style={styles.cartButton}>
+      <TouchableOpacity onPress={handleAddToCart} style={styles.cartButton}>
         <Text style={styles.cartText}>ADD TO CART</Text>
       </TouchableOpacity>
     </View>
@@ -70,27 +93,37 @@ const Meal = () => {
 
 const styles = StyleSheet.create({
   container: { alignItems: "center", padding: 20, backgroundColor: "#FFF" },
-  image: { width: 200, height: 200, borderRadius: 10 },
-  title: { fontSize: 24, fontWeight: "bold", marginVertical: 10 },
-  subText: { color: "gray" },
+  backButton: { position: "absolute", top: 20, left: 20, zIndex: 1 },
+  image: { width: 220, height: 220, borderRadius: 15, marginVertical: 10 },
+  title: { fontSize: 26, fontWeight: "bold", marginVertical: 5 },
+  subText: { color: "gray", fontSize: 16 },
   detailsRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     width: "80%",
     marginVertical: 10,
   },
-  rating: { fontSize: 16 },
-  delivery: { fontSize: 16 },
+  rating: { fontSize: 16, flexDirection: "row", alignItems: "center" },
+  delivery: { fontSize: 16, flexDirection: "row", alignItems: "center" },
   sizeContainer: { flexDirection: "row", marginVertical: 10 },
   sizeButton: {
-    padding: 10,
+    padding: 12,
     marginHorizontal: 5,
     borderWidth: 1,
-    borderRadius: 5,
+    borderRadius: 8,
+    borderColor: "#ddd",
+    backgroundColor: "#f9f9f9",
   },
   selectedSize: { backgroundColor: "#FFA500", borderColor: "#FFA500" },
-  price: { fontSize: 24, fontWeight: "bold", marginVertical: 10 },
-  cartButton: { backgroundColor: "#FFA500", padding: 15, borderRadius: 5 },
+  price: { fontSize: 26, fontWeight: "bold", marginVertical: 10 },
+  cartButton: {
+    backgroundColor: "#FFA500",
+    padding: 15,
+    borderRadius: 10,
+    width: "80%",
+    alignItems: "center",
+    marginTop: 10,
+  },
   cartText: { color: "#FFF", fontSize: 18, fontWeight: "bold" },
   loader: { flex: 1, justifyContent: "center", alignItems: "center" },
   errorText: { textAlign: "center", marginTop: 20, fontSize: 18, color: "red" },

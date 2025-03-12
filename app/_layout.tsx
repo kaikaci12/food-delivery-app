@@ -63,7 +63,8 @@ function RootLayoutNav() {
           <Stack.Screen name="register" options={{ headerShown: false }} />
           <Stack.Screen name="login" options={{ headerShown: false }} />
           <Stack.Screen name="location" options={{ headerShown: false }} />
-          <Stack.Screen name="meal" options={{ headerShown: false }} />
+          <Stack.Screen name="meal/[id]" options={{ headerShown: false }} />
+          <Stack.Screen name="cart" options={{ headerShown: false }} />
           <Stack.Screen name="modal" options={{ presentation: "modal" }} />
         </Stack>
       </ThemeProvider>

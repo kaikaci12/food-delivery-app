@@ -1,9 +1,20 @@
 import { View, Text, Image, TouchableOpacity, StyleSheet } from "react-native";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Feather from "@expo/vector-icons/Feather";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const HeaderBar = () => {
-  const [cartItems, setCartItems] = useState(null);
+  const [cartItems, setCartItems] = useState<any[]>([]);
+  useEffect(() => {
+    const getCartItems = async () => {
+      const cart = await AsyncStorage.getItem("cart");
+      console.log("cart", cart);
+      if (cart) {
+        setCartItems(JSON.parse(cart));
+      }
+    };
+    getCartItems();
+  }, []);
   return (
     <View style={styles.container}>
       {/* Menu Icon */}
@@ -26,7 +37,7 @@ const HeaderBar = () => {
         </View>
         {cartItems && (
           <View style={styles.badge}>
-            <Text style={styles.badgeText}>2</Text>
+            <Text style={styles.badgeText}>{cartItems.length}</Text>
           </View>
         )}
       </TouchableOpacity>

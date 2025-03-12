@@ -10,7 +10,7 @@ const Categories = ({ handleCategory, active, setActive }: CategoryProps) => {
   const [categories, setCategories] = useState([
     { name: "All", image: require("../assets/categories/fire.png") },
     {
-      name: "Deserts",
+      name: "Desserts",
       image: require("../assets/categories/dessert.png"),
     },
     {
