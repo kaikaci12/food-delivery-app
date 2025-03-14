@@ -12,9 +12,11 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import Feather from "@expo/vector-icons/Feather";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
+import { useCart } from "@/context/CartProvider";
 
 const Meal = () => {
   const { id } = useLocalSearchParams();
+  const { cart, handleAddToCart } = useCart();
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [foodData, setFoodData] = useState<any>([]);
@@ -46,22 +48,7 @@ const Meal = () => {
   if (!foodData) {
     return <Text style={styles.errorText}>Food item not found</Text>;
   }
-  const handleAddToCart = async () => {
-    try {
-      const cartItem = {
-        id: foodData.id,
-        name: foodData.name,
-        price: foodData.price,
-        image: foodData.image,
-        quantity: 1,
-      };
-      await AsyncStorage.setItem("cart", JSON.stringify(cartItem));
-      console.log("Item added to cart", cartItem);
-      alert("Item added to cart");
-    } catch (error) {
-      console.log(error);
-    }
-  };
+
   return (
     <View style={styles.container}>
       <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
@@ -84,7 +71,17 @@ const Meal = () => {
       </View>
 
       <Text style={styles.price}>${foodData.price}</Text>
-      <TouchableOpacity onPress={handleAddToCart} style={styles.cartButton}>
+      <TouchableOpacity
+        onPress={async () => {
+          try {
+            await handleAddToCart(foodData);
+            alert("Item added to cart");
+          } catch (error) {
+            console.log(error);
+          }
+        }}
+        style={styles.cartButton}
+      >
         <Text style={styles.cartText}>ADD TO CART</Text>
       </TouchableOpacity>
     </View>

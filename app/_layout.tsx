@@ -10,11 +10,12 @@ import * as SplashScreen from "expo-splash-screen";
 import { useEffect } from "react";
 
 import { useColorScheme } from "@/components/useColorScheme";
-import { StatusBar } from "react-native";
+import { ActivityIndicator, StatusBar } from "react-native";
 import { useRouter } from "expo-router";
 import { useAuth } from "@/context/AuthProvider";
 export { ErrorBoundary } from "expo-router";
 import { CartProvider } from "@/context/CartProvider";
+import LoadingAnimation from "@/components/Loading";
 
 export default function RootLayout() {
   SplashScreen.preventAutoHideAsync();
@@ -44,16 +45,23 @@ export default function RootLayout() {
 }
 
 function RootLayoutNav() {
-  const { authState } = useAuth();
+  const { authState, loading } = useAuth(); // Add loading state from useAuth
   const router = useRouter();
-  useEffect(() => {
-    if (!authState.token && !authState.user) {
-      router.replace("/Dashboard");
-    } else {
-      router.replace("/Dashboard");
-    }
-  }, [authState.token, router]);
   const colorScheme = useColorScheme();
+
+  useEffect(() => {
+    if (!loading) {
+      if (!authState.token && !authState.user) {
+        router.replace("/");
+      } else {
+        router.replace("/Dashboard"); // Redirect to Dashboard if authenticated
+      }
+    }
+  }, [authState.token, authState.user, loading, router]);
+
+  if (loading) {
+    return <LoadingAnimation />;
+  }
 
   return (
     <AuthProvider>

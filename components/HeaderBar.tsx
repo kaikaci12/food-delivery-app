@@ -8,13 +8,13 @@ import { useRouter } from "expo-router";
 const HeaderBar = () => {
   const [cartItems, setCartItems] = useState<any[]>([]);
   const { cart, handleAddToCart } = useCart();
-  const router = useRouter()
+  const router = useRouter();
   useEffect(() => {
     const getCartItems = async () => {
       setCartItems(cart);
     };
     getCartItems();
-  }, []);
+  }, [cart]);
   return (
     <View style={styles.container}>
       {/* Menu Icon */}
@@ -31,7 +31,10 @@ const HeaderBar = () => {
         </View>
       </View>
 
-    <TouchableOpacity onPress={()=>router.push("/cart")} style={styles.cartContainer}>
+      <TouchableOpacity
+        onPress={() => router.push("/cart")}
+        style={styles.cartContainer}
+      >
         <View style={styles.cartIcon}>
           <Feather name="shopping-bag" size={22} color="white" />
         </View>

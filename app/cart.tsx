@@ -6,28 +6,44 @@ import {
   TouchableOpacity,
   FlatList,
   StyleSheet,
+  Alert,
+  TextInput,
 } from "react-native";
 import { useCart } from "@/context/CartProvider";
+import {} from "react-native";
+import { useRouter } from "expo-router";
 
 const CartScreen = () => {
-  const { cart } = useCart();
+  const { cart, handleAddToCart, handleRemoveFromCart } = useCart();
   const [cartItems, setCartItems] = useState<any[]>([]);
+  const [total, setTotal] = useState(0);
+  const router = useRouter();
+
   useEffect(() => {
-    const getCartItems = async () => {
+    const getCartItems = () => {
       setCartItems(cart);
+      const totalAmount = cart.reduce(
+        (acc, item) =>
+          acc + (Number(item.price) || 0) * (Number(item.quantity) || 0),
+        0
+      );
+      console.log(cart);
+      setTotal(totalAmount);
     };
     getCartItems();
   }, [cart]);
+
   return (
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.backButton}>←</Text>
+        <Text onPress={() => router.back()} style={styles.backButton}>
+          ←
+        </Text>
         <Text style={styles.title}>Cart</Text>
         <Text style={styles.editText}>EDIT ITEMS</Text>
       </View>
 
-      {/* Cart Items */}
       <FlatList
         data={cartItems}
         keyExtractor={(item) => item.id}
@@ -40,11 +56,34 @@ const CartScreen = () => {
               <Text style={styles.itemSize}>{item.size}</Text>
             </View>
             <View style={styles.quantityControl}>
-              <TouchableOpacity style={styles.quantityButton}>
+              <TouchableOpacity
+                style={styles.quantityButton}
+                onPress={() => {
+                  if (item.quantity === 1) {
+                    Alert.alert(
+                      "Remove Item",
+                      "Are you sure you want to remove this item from the cart?",
+                      [
+                        { text: "Cancel", style: "cancel" },
+                        {
+                          text: "Remove",
+                          style: "destructive",
+                          onPress: () => handleRemoveFromCart(item.id),
+                        },
+                      ]
+                    );
+                  } else {
+                    handleRemoveFromCart(item.id);
+                  }
+                }}
+              >
                 <Text style={styles.buttonText}>-</Text>
               </TouchableOpacity>
               <Text style={styles.quantity}>{item.quantity}</Text>
-              <TouchableOpacity style={styles.quantityButton}>
+              <TouchableOpacity
+                style={styles.quantityButton}
+                onPress={() => handleAddToCart({ ...item, quantity: 1 })}
+              >
                 <Text style={styles.buttonText}>+</Text>
               </TouchableOpacity>
             </View>
@@ -55,15 +94,18 @@ const CartScreen = () => {
       <View style={styles.addressSection}>
         <Text style={styles.addressLabel}>DELIVERY ADDRESS</Text>
         <Text style={styles.editAddress}>EDIT</Text>
-        <Text style={styles.addressText}>2118 Thornridge Cir. Syracuse</Text>
+        <TextInput
+          style={styles.addressText}
+          value="2118 Thornridge Cir. Syracuse"
+        />
       </View>
 
       {/* Total and Button */}
       <View style={styles.footer}>
         <View style={styles.totalRow}>
           <Text style={styles.totalText}>TOTAL:</Text>
+          <Text style={styles.totalAmount}>${total.toFixed(2)}</Text>
           <Text style={styles.breakdownText}>Breakdown</Text>
-          <Text style={styles.totalAmount}>$96</Text>
         </View>
         <TouchableOpacity style={styles.orderButton}>
           <Text style={styles.orderButtonText}>PLACE ORDER</Text>

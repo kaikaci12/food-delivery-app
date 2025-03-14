@@ -7,30 +7,39 @@ export const CartProvider = ({ children }: any) => {
 
   useEffect(() => {
     const loadCart = async () => {
-      const storedCart = await AsyncStorage.getItem("cart");
-      if (!storedCart) {
-        await AsyncStorage.setItem("cart", JSON.stringify([]));
+      try {
+        const storedCart = await AsyncStorage.getItem("cart");
+        setCart(storedCart ? JSON.parse(storedCart) : []);
+      } catch (error) {
+        console.error("Failed to load cart from storage:", error);
       }
-      setCart(storedCart ? JSON.parse(storedCart) : []);
     };
     loadCart();
   }, []);
 
+  const updateCartStorage = async (updatedCart: any[]) => {
+    try {
+      await AsyncStorage.setItem("cart", JSON.stringify(updatedCart));
+      setCart(updatedCart);
+    } catch (error) {
+      console.error("Failed to update cart in storage:", error);
+    }
+  };
   const handleAddToCart = async (product: any) => {
-    if (product.quantity === 0) return;
+    if (!product) return; // Ensure product exists
+
+    // Ensure quantity is always a valid number, default to 1
+    const productQuantity = product.quantity ?? 1;
 
     const productExist = cart.find((item) => item.id === product.id);
 
-    let updatedCart;
-    if (productExist) {
-      updatedCart = cart.map((item) =>
-        item.id === product.id
-          ? { ...item, quantity: item.quantity + product.quantity }
-          : item
-      );
-    } else {
-      updatedCart = [...cart, product];
-    }
+    const updatedCart = productExist
+      ? cart.map((item) =>
+          item.id === product.id
+            ? { ...item, quantity: (item.quantity ?? 1) + productQuantity }
+            : item
+        )
+      : [...cart, { ...product, quantity: productQuantity }];
 
     setCart(updatedCart);
     await AsyncStorage.setItem("cart", JSON.stringify(updatedCart));
@@ -40,22 +49,20 @@ export const CartProvider = ({ children }: any) => {
     const productExist = cart.find((item) => item.id === productId);
     if (!productExist) return;
 
-    let updatedCart;
-    if (productExist.quantity === 1) {
-      updatedCart = cart.filter((item) => item.id !== productId);
-    } else {
-      updatedCart = cart.map((item) =>
-        item.id === productId ? { ...item, quantity: item.quantity - 1 } : item
-      );
-    }
+    const updatedCart =
+      productExist.quantity === 1
+        ? cart.filter((item) => item.id !== productId)
+        : cart.map((item) =>
+            item.id === productId
+              ? { ...item, quantity: item.quantity - 1 }
+              : item
+          );
 
-    setCart(updatedCart);
-    await AsyncStorage.setItem("cart", JSON.stringify(updatedCart));
+    await updateCartStorage(updatedCart);
   };
 
   const handleClearCart = async () => {
-    await AsyncStorage.setItem("cart", JSON.stringify([]));
-    setCart([]);
+    await updateCartStorage([]);
   };
 
   return (

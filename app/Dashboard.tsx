@@ -27,6 +27,7 @@ export default function TabOneScreen() {
 
   useEffect(() => {
     if (!authState.token || !authState.user) {
+      console.log("current user not found");
       // router.replace("/log");
       return;
     }

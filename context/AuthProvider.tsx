@@ -1,4 +1,3 @@
-import { StyleSheet, Text, View } from "react-native";
 import { useContext, useEffect, useState } from "react";
 import React from "react";
 import { AuthContext } from "./AuthContext";
@@ -11,7 +10,11 @@ import {
 } from "firebase/auth";
 import { db } from "@/firebaseConfig";
 import * as SecureStore from "expo-secure-store";
-import { getDoc, setDoc, doc, onSnapshot } from "firebase/firestore";
+import { setDoc, doc, onSnapshot } from "firebase/firestore";
+
+const TOKEN_KEY = "myjwt";
+const UID_KEY = "userUid"; // Key for storing the user's UID in SecureStore
+
 const AuthProvider = ({ children }: any) => {
   const [authState, setAuthState] = useState<{
     token: string | null;
@@ -21,36 +24,89 @@ const AuthProvider = ({ children }: any) => {
     user: null,
   });
 
-  useEffect(() => {
-    const unsubscribeAuth = onAuthStateChanged(auth, async (user) => {
-      if (user) {
-        try {
-          const token = await user.getIdToken();
-          const userRef = doc(db, "users", user.uid);
+  const [loading, setLoading] = useState(true); // Add a loading state
 
-          const unsubscribeFirestore = onSnapshot(userRef, (docSnap) => {
-            if (docSnap.exists()) {
-              setAuthState({
-                token,
-                user: { uid: user.uid, email: user.email, ...docSnap.data() },
-              });
-              console.log("stored user: ", {
-                uid: user.uid,
-                email: user.email,
-                ...docSnap.data(),
-              });
-            }
-          });
+  const saveUidToStorage = async (uid: string) => {
+    try {
+      await SecureStore.setItemAsync(UID_KEY, uid);
+    } catch (error) {
+      console.error("Failed to save UID to SecureStore:", error);
+    }
+  };
 
-          return () => unsubscribeFirestore();
-        } catch (error: any) {
-          console.log(error.message);
-        }
+  // Load user UID from SecureStore
+  const loadUidFromStorage = async () => {
+    try {
+      const uid = await SecureStore.getItemAsync(UID_KEY);
+      return uid;
+    } catch (error) {
+      console.error("Failed to load UID from SecureStore:", error);
+      return null;
+    }
+  };
+
+  // Clear user UID from SecureStore
+  const clearUidFromStorage = async () => {
+    try {
+      await SecureStore.deleteItemAsync(UID_KEY);
+    } catch (error) {
+      console.error("Failed to clear UID from SecureStore:", error);
+    }
+  };
+
+  // Fetch user data from Firestore using UID
+  const fetchUserData = async (uid: string) => {
+    const userRef = doc(db, "users", uid);
+    const unsubscribe = onSnapshot(userRef, (docSnap) => {
+      if (docSnap.exists()) {
+        const userProfile = docSnap.data(); // Get the latest user data
+        setAuthState((prev) => ({ ...prev, user: userProfile }));
       } else {
-        setAuthState({ token: null, user: null });
+        console.error("User document does not exist in Firestore");
+        setAuthState((prev) => ({ ...prev, user: null }));
       }
     });
 
+    return unsubscribe; // Return the unsubscribe function for cleanup
+  };
+
+  useEffect(() => {
+    // Load UID from SecureStore when the app starts
+    const initializeAuth = async () => {
+      const uid = await loadUidFromStorage();
+      if (uid) {
+        const unsubscribeSnapshot = await fetchUserData(uid);
+        return () => unsubscribeSnapshot(); // Cleanup the snapshot listener
+      }
+      setLoading(false);
+    };
+
+    initializeAuth();
+
+    // Listen for authentication state changes
+    const unsubscribeAuth = onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        // User is signed in
+        const token = await user.getIdToken();
+        await SecureStore.setItemAsync(TOKEN_KEY, token);
+        await saveUidToStorage(user.uid);
+
+        // Fetch user data from Firestore
+        const unsubscribeSnapshot = await fetchUserData(user.uid);
+        setAuthState((prev) => ({ ...prev, token }));
+
+        // Return the unsubscribe function for cleanup
+        return () => unsubscribeSnapshot();
+      } else {
+        // User is signed out
+        await SecureStore.deleteItemAsync(TOKEN_KEY);
+        await clearUidFromStorage();
+        setAuthState({ token: null, user: null });
+      }
+      setLoading(false); // Set loading to false after auth state is resolved
+    });
+
+    // Cleanup the auth listener on unmount
     return () => unsubscribeAuth();
   }, []);
 
@@ -62,7 +118,6 @@ const AuthProvider = ({ children }: any) => {
     try {
       const userCredential = await createUserWithEmailAndPassword(
         auth,
-
         email,
         password
       );
@@ -77,12 +132,14 @@ const AuthProvider = ({ children }: any) => {
       };
 
       await setDoc(userRef, userProfile);
-      return;
+      await SecureStore.setItemAsync(TOKEN_KEY, await user.getIdToken());
+      await saveUidToStorage(user.uid);
     } catch (error: any) {
-      console.log(error.messsage);
+      console.log(error.message);
       throw new Error(error.message);
     }
   };
+
   const login = async (email: string, password: string) => {
     try {
       const userCredentials = await signInWithEmailAndPassword(
@@ -91,18 +148,22 @@ const AuthProvider = ({ children }: any) => {
         password
       );
       const token = await userCredentials.user.getIdToken();
-      SecureStore.setItem("mjwt", token);
+      await SecureStore.setItemAsync(TOKEN_KEY, token);
+      await saveUidToStorage(userCredentials.user.uid);
+
+      // Fetch user data from Firestore
+      await fetchUserData(userCredentials.user.uid);
     } catch (error: any) {
       throw new Error(error.message);
     }
   };
+
   const logOut = async () => {
     try {
       await signOut(auth);
-      setAuthState({
-        token: null,
-        user: null,
-      });
+      setAuthState({ token: null, user: null });
+      await SecureStore.deleteItemAsync(TOKEN_KEY);
+      await clearUidFromStorage();
     } catch (error: any) {
       console.log(error.message);
     }
@@ -113,16 +174,11 @@ const AuthProvider = ({ children }: any) => {
     onLogin: login,
     onLogout: logOut,
     authState,
+    loading, // Expose loading state
   };
-  return (
-    <AuthContext.Provider
-      value={value}
-      children={children}
-    ></AuthContext.Provider>
-  );
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
 export default AuthProvider;
-
-const styles = StyleSheet.create({});
 export const useAuth = () => useContext(AuthContext);

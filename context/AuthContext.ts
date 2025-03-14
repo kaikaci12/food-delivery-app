@@ -13,6 +13,7 @@ export interface AuthProps {
   ) => Promise<void>;
   onLogin: (email: string, password: string) => Promise<void>;
   onLogout: () => void;
+  loading: boolean;
 }
 
 export const AuthContext = createContext<AuthProps>({
@@ -20,4 +21,5 @@ export const AuthContext = createContext<AuthProps>({
   onRegister: async () => {},
   onLogin: async () => {},
   onLogout: () => {},
+  loading: true,
 });
