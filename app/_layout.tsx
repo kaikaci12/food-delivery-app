@@ -16,6 +16,7 @@ import { useAuth } from "@/context/AuthProvider";
 export { ErrorBoundary } from "expo-router";
 import { CartProvider } from "@/context/CartProvider";
 import LoadingAnimation from "@/components/Loading";
+import { useLocation } from "@/hooks/useLocation";
 
 export default function RootLayout() {
   SplashScreen.preventAutoHideAsync();
@@ -50,18 +51,23 @@ export default function RootLayout() {
 
 function RootLayoutNav() {
   const { authState, loading } = useAuth(); // Add loading state from useAuth
+  const { location } = useLocation();
   const router = useRouter();
   const colorScheme = useColorScheme();
 
   useEffect(() => {
     if (!loading) {
       if (!authState.token && !authState.user) {
-        router.replace("/");
-      } else {
-        router.replace("/Dashboard"); // Redirect to Dashboard if authenticated
+        router.replace("/"); // Redirect to login screen if not authenticated
+      } else if (authState.token && authState.user) {
+        if (!location) {
+          router.replace("/location"); // Redirect to location screen if no location
+        } else {
+          router.replace("/Dashboard"); // Redirect to Dashboard if authenticated and location is available
+        }
       }
     }
-  }, [authState.token, authState.user, loading, router]);
+  }, [authState.token, authState.user, loading, location, router]);
 
   if (loading) {
     return <LoadingAnimation />;

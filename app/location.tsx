@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import {
   StyleSheet,
   Text,
@@ -8,56 +8,16 @@ import {
   Image,
 } from "react-native";
 import MapView, { Marker } from "react-native-maps";
-import * as Location from "expo-location";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useLocation } from "@/hooks/useLocation"; // Import hook
 
 const LocationScreen = () => {
-  const [location, setLocation] = useState<Location.LocationObject | null>(
-    null
-  );
+  const { location, errorMsg, loading, requestLocation } = useLocation();
   const router = useRouter();
-  const [loading, setLoading] = useState(false);
-  const [errorMsg, setErrorMsg] = useState<string | null>(null);
-  const [mapRegion, setMapRegion] = useState<any>();
-  const requestLocation = async () => {
-    setLoading(true);
-    setErrorMsg(null);
-
-    // Request permission properly
-    let { status } = await Location.requestForegroundPermissionsAsync();
-
-    if (status !== "granted") {
-      setErrorMsg("Location permission is required to continue.");
-      setLoading(false);
-      return;
-    }
-
-    try {
-      let userLocation = await Location.getCurrentPositionAsync();
-
-      setLocation(userLocation);
-      setMapRegion({
-        latitude: userLocation.coords.latitude,
-        longitude: userLocation.coords.longitude,
-        latitudeDelta: 0.0922,
-        longitudeDelta: 0.0421,
-      });
-
-      console.log("Location:", userLocation);
-
-      router.replace("/Dashboard");
-    } catch (error) {
-      setErrorMsg("Unable to retrieve location. Please try again.");
-    }
-
-    setLoading(false);
-  };
-
+  console.log("user location detected  ✅", location);
   return (
     <View style={styles.container}>
-      {/* Location Image */}
       <Image
         style={styles.image}
         source={require("../assets/images/location.png")}
@@ -86,17 +46,35 @@ const LocationScreen = () => {
       </Text>
 
       {errorMsg && <Text style={styles.errorText}>{errorMsg}</Text>}
+
       {location && (
-        <MapView region={mapRegion} style={styles.map}>
-          <Marker coordinate={mapRegion} title="Marker" />
-        </MapView>
+        <View>
+          <MapView
+            region={{
+              latitude: location.coords.latitude,
+              longitude: location.coords.longitude,
+              latitudeDelta: 0.0922,
+              longitudeDelta: 0.0421,
+            }}
+            style={styles.map}
+          >
+            <Marker coordinate={location.coords} title="Your Location" />
+          </MapView>
+          <TouchableOpacity
+            style={styles.continueButton}
+            onPress={() => {
+              router.replace("/Dashboard");
+            }}
+          >
+            <Text>Continue</Text>
+          </TouchableOpacity>
+        </View>
       )}
     </View>
   );
 };
 
 export default LocationScreen;
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -106,42 +84,77 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   image: {
-    width: 150,
-    height: 150,
-    marginBottom: 30,
+    width: 180,
+    height: 180,
+    marginBottom: 25,
   },
   button: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    width: "90%",
+    width: "85%",
     height: 50,
     backgroundColor: "#FF6B00",
-    borderRadius: 10,
+    borderRadius: 12,
     marginTop: 20,
     paddingHorizontal: 15,
+    shadowColor: "#000",
+    shadowOpacity: 0.15,
+    shadowRadius: 6,
+    elevation: 5,
   },
   buttonText: {
     color: "#FFF",
     fontSize: 16,
     fontWeight: "bold",
-    marginRight: 10,
+    marginRight: 8,
   },
   infoText: {
     textAlign: "center",
     color: "#6B7280",
-    fontSize: 14,
-    marginTop: 15,
-    paddingHorizontal: 10,
+    fontSize: 15,
+    marginTop: 12,
+    paddingHorizontal: 12,
   },
   errorText: {
-    color: "red",
+    color: "#FF4C4C",
     fontSize: 14,
-    marginTop: 10,
-    paddingHorizontal: 10,
+    marginTop: 12,
+    paddingHorizontal: 12,
+    textAlign: "center",
+  },
+  mapContainer: {
+    width: "90%",
+    borderRadius: 12,
+    overflow: "hidden",
+    marginTop: 20,
+    borderColor: "#E5E7EB",
+    borderWidth: 1,
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
+    shadowRadius: 5,
+    elevation: 3,
   },
   map: {
-    width: 200,
-    height: 200,
+    minWidth: "100%",
+    height: 220,
+  },
+  continueButton: {
+    marginTop: 15,
+    backgroundColor: "#008060",
+    width: "85%",
+    height: 50,
+    borderRadius: 12,
+    justifyContent: "center",
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOpacity: 0.15,
+    shadowRadius: 6,
+    elevation: 5,
+  },
+  continueButtonText: {
+    color: "#FFF",
+    fontSize: 16,
+    fontWeight: "bold",
   },
 });
