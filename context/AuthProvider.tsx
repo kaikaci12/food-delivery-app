@@ -71,43 +71,42 @@ const AuthProvider = ({ children }: any) => {
   };
 
   useEffect(() => {
-    // Load UID from SecureStore when the app starts
+    let unsubscribeSnapshot: (() => void) | null = null;
+
     const initializeAuth = async () => {
       const uid = await loadUidFromStorage();
       if (uid) {
-        const unsubscribeSnapshot = await fetchUserData(uid);
-        return () => unsubscribeSnapshot(); // Cleanup the snapshot listener
+        unsubscribeSnapshot = await fetchUserData(uid);
       }
       setLoading(false);
     };
 
     initializeAuth();
 
-    // Listen for authentication state changes
     const unsubscribeAuth = onAuthStateChanged(auth, async (user) => {
       if (user) {
-        // User is signed in
         const token = await user.getIdToken();
         await SecureStore.setItemAsync(TOKEN_KEY, token);
         await saveUidToStorage(user.uid);
 
-        // Fetch user data from Firestore
-        const unsubscribeSnapshot = await fetchUserData(user.uid);
-        setAuthState((prev) => ({ ...prev, token }));
+        if (unsubscribeSnapshot) unsubscribeSnapshot(); // Cleanup old snapshot
+        unsubscribeSnapshot = await fetchUserData(user.uid);
 
-        // Return the unsubscribe function for cleanup
-        return () => unsubscribeSnapshot();
+        setAuthState((prev) => ({ ...prev, token }));
       } else {
-        // User is signed out
         await SecureStore.deleteItemAsync(TOKEN_KEY);
         await clearUidFromStorage();
         setAuthState({ token: null, user: null });
+
+        if (unsubscribeSnapshot) unsubscribeSnapshot();
       }
-      setLoading(false); // Set loading to false after auth state is resolved
+      setLoading(false);
     });
 
-    // Cleanup the auth listener on unmount
-    return () => unsubscribeAuth();
+    return () => {
+      unsubscribeAuth();
+      if (unsubscribeSnapshot) unsubscribeSnapshot();
+    };
   }, []);
 
   const register = async (

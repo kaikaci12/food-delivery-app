@@ -11,6 +11,7 @@ import MapView, { Marker } from "react-native-maps";
 import * as Location from "expo-location";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const LocationScreen = () => {
   const [location, setLocation] = useState<Location.LocationObject | null>(
@@ -26,7 +27,7 @@ const LocationScreen = () => {
 
     // Request permission properly
     let { status } = await Location.requestForegroundPermissionsAsync();
-    router.replace("/Dashboard");
+
     if (status !== "granted") {
       setErrorMsg("Location permission is required to continue.");
       setLoading(false);
@@ -34,7 +35,6 @@ const LocationScreen = () => {
     }
 
     try {
-      router.replace("/Dashboard");
       let userLocation = await Location.getCurrentPositionAsync();
 
       setLocation(userLocation);
@@ -46,6 +46,7 @@ const LocationScreen = () => {
       });
 
       console.log("Location:", userLocation);
+
       router.replace("/Dashboard");
     } catch (error) {
       setErrorMsg("Unable to retrieve location. Please try again.");

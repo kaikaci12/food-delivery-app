@@ -15,6 +15,7 @@ import { UserProfile } from "@/types";
 import Search from "@/components/Search";
 import Categories from "@/components/Categories";
 import { useCart } from "@/context/CartProvider";
+import LoadingAnimation from "@/components/Loading";
 export default function TabOneScreen() {
   const [currentUser, setCurrentUser] = useState<UserProfile>();
   const [foodItems, setFoodItems] = useState([]);
@@ -22,17 +23,20 @@ export default function TabOneScreen() {
   const [filteredFoodItems, setFilteredFoodItems] = useState([]); // Keep original data
   const [category, setCategory] = useState("All");
   const router = useRouter();
-  const { authState } = useAuth();
+  const { authState, loading } = useAuth();
   const { handleAddToCart } = useCart();
 
   useEffect(() => {
+    if (loading) return; // Wait until loading is finished
+
     if (!authState.token || !authState.user) {
       console.log("current user not found");
-      // router.replace("/log");
+
       return;
     }
+
     setCurrentUser(authState.user);
-  }, [authState]);
+  }, [authState, loading]);
 
   useEffect(() => {
     const fetchFoodItems = async () => {

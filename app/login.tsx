@@ -38,7 +38,7 @@ const LoginComponent = () => {
     try {
       await onLogin(email, password);
       alert("Logged In Successfully ✅");
-      router.replace("/Dashboard"); // Ensures users can't navigate back to login
+      router.replace("/location"); // Ensures users can't navigate back to login
     } catch (error: any) {
       const errorMessage = error.message || "An unexpected error occurred.";
 

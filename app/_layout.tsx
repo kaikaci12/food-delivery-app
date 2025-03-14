@@ -41,7 +41,11 @@ export default function RootLayout() {
     return null; // Ensure nothing renders until fonts are loaded
   }
 
-  return <RootLayoutNav />;
+  return (
+    <AuthProvider>
+      <RootLayoutNav />
+    </AuthProvider>
+  );
 }
 
 function RootLayoutNav() {
@@ -64,21 +68,19 @@ function RootLayoutNav() {
   }
 
   return (
-    <AuthProvider>
-      <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
-        <CartProvider>
-          <Stack initialRouteName="index">
-            <Stack.Screen name="index" options={{ headerShown: false }} />
-            <Stack.Screen name="Dashboard" options={{ headerShown: false }} />
-            <Stack.Screen name="register" options={{ headerShown: false }} />
-            <Stack.Screen name="login" options={{ headerShown: false }} />
-            <Stack.Screen name="location" options={{ headerShown: false }} />
-            <Stack.Screen name="meal/[id]" options={{ headerShown: false }} />
-            <Stack.Screen name="cart" options={{ headerShown: false }} />
-            <Stack.Screen name="modal" options={{ presentation: "modal" }} />
-          </Stack>
-        </CartProvider>
-      </ThemeProvider>
-    </AuthProvider>
+    <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
+      <CartProvider>
+        <Stack initialRouteName="index">
+          <Stack.Screen name="index" options={{ headerShown: false }} />
+          <Stack.Screen name="Dashboard" options={{ headerShown: false }} />
+          <Stack.Screen name="register" options={{ headerShown: false }} />
+          <Stack.Screen name="login" options={{ headerShown: false }} />
+          <Stack.Screen name="location" options={{ headerShown: false }} />
+          <Stack.Screen name="meal/[id]" options={{ headerShown: false }} />
+          <Stack.Screen name="cart" options={{ headerShown: false }} />
+          <Stack.Screen name="modal" options={{ presentation: "modal" }} />
+        </Stack>
+      </CartProvider>
+    </ThemeProvider>
   );
 }
