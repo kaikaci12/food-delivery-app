@@ -1,5 +1,5 @@
-import React from "react";
-import { StyleSheet, View } from "react-native";
+import React, { useEffect } from "react";
+import { StyleSheet, View, ActivityIndicator } from "react-native";
 import Animated, {
   useSharedValue,
   withRepeat,
@@ -11,14 +11,16 @@ import Animated, {
 const LoadingAnimation = () => {
   const rotation = useSharedValue(0);
 
-  rotation.value = withRepeat(
-    withTiming(360, {
-      duration: 1000,
-      easing: Easing.linear,
-    }),
-    -1, // Infinite loop
-    false
-  );
+  useEffect(() => {
+    rotation.value = withRepeat(
+      withTiming(360, {
+        duration: 1000,
+        easing: Easing.linear,
+      }),
+      -1, // Infinite loop
+      false
+    );
+  }, []);
 
   const animatedStyles = useAnimatedStyle(() => {
     return {
@@ -28,7 +30,7 @@ const LoadingAnimation = () => {
 
   return (
     <View style={styles.container}>
-      <Animated.View style={[styles.spinner, animatedStyles]} />
+      <ActivityIndicator animating={true} style={styles.spinner} />
     </View>
   );
 };

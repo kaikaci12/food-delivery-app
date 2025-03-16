@@ -15,20 +15,19 @@ import { UserProfile } from "@/types";
 import Search from "@/components/Search";
 import Categories from "@/components/Categories";
 import { useCart } from "@/context/CartProvider";
+import { useLocation } from "@/hooks/useLocation";
 import LoadingAnimation from "@/components/Loading";
 export default function TabOneScreen() {
   const [currentUser, setCurrentUser] = useState<UserProfile>();
   const [foodItems, setFoodItems] = useState([]);
-
+  const [loading, setLoading] = useState(true);
   const [filteredFoodItems, setFilteredFoodItems] = useState([]); // Keep original data
   const [category, setCategory] = useState("All");
   const router = useRouter();
-  const { authState, loading } = useAuth();
+  const { authState } = useAuth();
   const { handleAddToCart } = useCart();
 
   useEffect(() => {
-    if (loading) return; // Wait until loading is finished
-
     if (!authState.token || !authState.user) {
       console.log("current user not found");
 
@@ -36,7 +35,7 @@ export default function TabOneScreen() {
     }
 
     setCurrentUser(authState.user);
-  }, [authState, loading]);
+  }, [authState]);
 
   useEffect(() => {
     const fetchFoodItems = async () => {
@@ -47,6 +46,7 @@ export default function TabOneScreen() {
         const data = await response.json();
         setFoodItems(data);
         setFilteredFoodItems(data); // Store original data
+        setLoading(false);
       } catch (error) {
         console.log(error);
       }
@@ -93,33 +93,36 @@ export default function TabOneScreen() {
         setActive={setCategory}
         active={category}
       />
+      {loading ? (
+        <LoadingAnimation />
+      ) : (
+        <FlatList
+          data={filteredFoodItems}
+          keyExtractor={(item, index) => index.toString()}
+          numColumns={2}
+          renderItem={({ item }: any) => (
+            <View style={styles.card}>
+              <Link href={`/meal/${item.id}` as any}>
+                <Image source={{ uri: item.image }} style={styles.image} />
+                <Text style={styles.name}>{item.name}</Text>
+                <Text style={styles.location}>{item.location}</Text>
+                <Text style={styles.price}>${item.price}</Text>
+              </Link>
 
-      <FlatList
-        data={filteredFoodItems}
-        keyExtractor={(item, index) => index.toString()}
-        numColumns={2}
-        renderItem={({ item }: any) => (
-          <View style={styles.card}>
-            <Link href={`/meal/${item.id}` as any}>
-              <Image source={{ uri: item.image }} style={styles.image} />
-              <Text style={styles.name}>{item.name}</Text>
-              <Text style={styles.location}>{item.location}</Text>
-              <Text style={styles.price}>${item.price}</Text>
-            </Link>
+              <TouchableOpacity
+                onPress={async () => {
+                  await handleAddToCart(item);
 
-            <TouchableOpacity
-              onPress={async () => {
-                await handleAddToCart(item);
-
-                alert("Added to cart");
-              }}
-              style={styles.addButton}
-            >
-              <AntDesign name="plus" size={18} color="white" />
-            </TouchableOpacity>
-          </View>
-        )}
-      />
+                  alert("Added to cart");
+                }}
+                style={styles.addButton}
+              >
+                <AntDesign name="plus" size={18} color="white" />
+              </TouchableOpacity>
+            </View>
+          )}
+        />
+      )}
     </View>
   );
 }

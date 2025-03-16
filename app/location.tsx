@@ -11,11 +11,12 @@ import MapView, { Marker } from "react-native-maps";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useLocation } from "@/hooks/useLocation"; // Import hook
+import LoadingAnimation from "@/components/Loading";
 
 const LocationScreen = () => {
   const { location, errorMsg, loading, requestLocation } = useLocation();
   const router = useRouter();
-  console.log("user location detected  ✅", location);
+
   return (
     <View style={styles.container}>
       <Image
@@ -47,8 +48,10 @@ const LocationScreen = () => {
 
       {errorMsg && <Text style={styles.errorText}>{errorMsg}</Text>}
 
-      {location && (
-        <View>
+      {loading ? (
+        <LoadingAnimation />
+      ) : location ? (
+        <View style={styles.mapContainer}>
           <MapView
             region={{
               latitude: location.coords.latitude,
@@ -62,19 +65,18 @@ const LocationScreen = () => {
           </MapView>
           <TouchableOpacity
             style={styles.continueButton}
-            onPress={() => {
-              router.replace("/Dashboard");
-            }}
+            onPress={() => router.replace("/Dashboard")}
           >
-            <Text>Continue</Text>
+            <Text style={styles.continueButtonText}>Continue</Text>
           </TouchableOpacity>
         </View>
-      )}
+      ) : null}
     </View>
   );
 };
 
 export default LocationScreen;
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -122,6 +124,9 @@ const styles = StyleSheet.create({
     marginTop: 12,
     paddingHorizontal: 12,
     textAlign: "center",
+  },
+  loadingIndicator: {
+    marginTop: 20,
   },
   mapContainer: {
     width: "90%",

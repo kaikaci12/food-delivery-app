@@ -4,17 +4,22 @@ import Feather from "@expo/vector-icons/Feather";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useCart } from "@/context/CartProvider";
 import { useRouter } from "expo-router";
-
+import { useLocation } from "@/hooks/useLocation";
 const HeaderBar = () => {
   const [cartItems, setCartItems] = useState<any[]>([]);
+  const [location, setLocation] = useState<any>({});
   const { cart, handleAddToCart } = useCart();
+  const { street, city } = useLocation();
   const router = useRouter();
+
   useEffect(() => {
-    const getCartItems = async () => {
+    const fetchData = async () => {
       setCartItems(cart);
+      setLocation({ street, city });
     };
-    getCartItems();
-  }, [cart]);
+    fetchData();
+  }, [cart, street, city]);
+
   return (
     <View style={styles.container}>
       {/* Menu Icon */}
@@ -26,7 +31,11 @@ const HeaderBar = () => {
       <View style={styles.deliveryInfo}>
         <Text style={styles.label}>DELIVER TO</Text>
         <View style={styles.locationRow}>
-          <Text style={styles.locationText}>Halal Lab office</Text>
+          <Text style={styles.locationText}>
+            {`${location.street}`}
+            {location.street && ","}
+            {location.city}
+          </Text>
           <Feather name="chevron-down" size={18} color="black" />
         </View>
       </View>

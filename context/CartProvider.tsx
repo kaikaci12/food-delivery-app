@@ -16,7 +16,14 @@ export const CartProvider = ({ children }: any) => {
     };
     loadCart();
   }, []);
-
+  const calculateTotal = () => {
+    const totalAmount = cart.reduce(
+      (acc, item) =>
+        acc + (Number(item.price) || 0) * (Number(item.quantity) || 0),
+      0
+    );
+    return totalAmount.toFixed(2);
+  };
   const updateCartStorage = async (updatedCart: any[]) => {
     try {
       await AsyncStorage.setItem("cart", JSON.stringify(updatedCart));
@@ -67,7 +74,13 @@ export const CartProvider = ({ children }: any) => {
 
   return (
     <CartContext.Provider
-      value={{ cart, handleAddToCart, handleRemoveFromCart, handleClearCart }}
+      value={{
+        cart,
+        handleAddToCart,
+        handleRemoveFromCart,
+        handleClearCart,
+        calculateTotal,
+      }}
     >
       {children}
     </CartContext.Provider>

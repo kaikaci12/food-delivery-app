@@ -1,50 +1,81 @@
 import { useState, useEffect } from "react";
-import * as Location from "expo-location";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as Location from "expo-location";
+
+type LocationData = {
+  location: Location.LocationObject | null;
+  city: string | null;
+  street: string | null;
+  errorMsg: string | null;
+};
 
 export const useLocation = () => {
-  const [location, setLocation] = useState<Location.LocationObject | null>(
-    null
-  );
+  const [locationData, setLocationData] = useState<LocationData>({
+    location: null,
+    city: null,
+    street: null,
+    errorMsg: null,
+  });
   const [loading, setLoading] = useState(false);
-  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  // Load saved location on startup
+  // 🏗 Load saved location when component mounts
   useEffect(() => {
-    const loadStoredLocation = async () => {
-      try {
-        const storedLocation = await AsyncStorage.getItem("userLocation");
-        if (storedLocation) {
-          setLocation(JSON.parse(storedLocation));
-        }
-      } catch (error) {
-        console.error("Failed to load stored location:", error);
-      }
-    };
-    loadStoredLocation();
+    loadSavedLocation();
   }, []);
+
+  const loadSavedLocation = async () => {
+    try {
+      const savedData = await AsyncStorage.getItem("locationData");
+      if (savedData) {
+        setLocationData(JSON.parse(savedData));
+      }
+    } catch (error) {
+      console.log("Failed to load saved location:", error);
+    }
+  };
 
   const requestLocation = async () => {
     setLoading(true);
-    setErrorMsg(null);
 
     let { status } = await Location.requestForegroundPermissionsAsync();
     if (status !== "granted") {
-      setErrorMsg("Location permission is required.");
+      setLocationData((prev) => ({
+        ...prev,
+        errorMsg: "Location permission is required.",
+      }));
       setLoading(false);
       return;
     }
 
     try {
-      let userLocation = await Location.getCurrentPositionAsync({});
-      setLocation(userLocation);
-      await AsyncStorage.setItem("userLocation", JSON.stringify(userLocation)); // Save to storage
+      let userLocation = await Location.getCurrentPositionAsync({
+        accuracy: Location.Accuracy.Highest,
+        mayShowUserSettingsDialog: true,
+      });
+
+      const address = await Location.reverseGeocodeAsync({
+        latitude: userLocation.coords.latitude,
+        longitude: userLocation.coords.longitude,
+      });
+
+      const updatedData: LocationData = {
+        location: userLocation,
+        city: address[0]?.city || "Unknown City",
+        street: address[0]?.street || "",
+        errorMsg: null,
+      };
+
+      setLocationData(updatedData);
+      await AsyncStorage.setItem("locationData", JSON.stringify(updatedData));
     } catch (error) {
-      setErrorMsg("Unable to retrieve location.");
+      setLocationData((prev) => ({
+        ...prev,
+        errorMsg: "Unable to retrieve location.",
+      }));
     }
 
     setLoading(false);
   };
 
-  return { location, errorMsg, loading, requestLocation };
+  return { ...locationData, loading, requestLocation };
 };
