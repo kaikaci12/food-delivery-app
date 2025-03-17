@@ -15,8 +15,9 @@ import { useRouter } from "expo-router";
 import { useOrder } from "@/hooks/useOrder";
 const CartScreen = () => {
   const { cart, handleAddToCart, handleRemoveFromCart } = useCart();
-
+  const { saveOrder, loading } = useOrder();
   const [cartItems, setCartItems] = useState<any[]>([]);
+  const [orderLoading, setOrderLoading] = useState(false);
 
   const [total, setTotal] = useState(0);
   const router = useRouter();
@@ -35,6 +36,15 @@ const CartScreen = () => {
     getCartItems();
   }, [cart]);
 
+  const handleOrder = async () => {
+    await saveOrder({
+      id: "1",
+      items: cartItems,
+      total,
+    });
+    setOrderLoading(loading);
+    router.replace("/checkout");
+  };
   return (
     <View style={styles.container}>
       {/* Header */}
@@ -109,7 +119,7 @@ const CartScreen = () => {
           <Text style={styles.totalAmount}>${total.toFixed(2)}</Text>
           <Text style={styles.breakdownText}>Breakdown</Text>
         </View>
-        <TouchableOpacity style={styles.orderButton}>
+        <TouchableOpacity onPress={handleOrder} style={styles.orderButton}>
           <Text style={styles.orderButtonText}>PLACE ORDER</Text>
         </TouchableOpacity>
       </View>

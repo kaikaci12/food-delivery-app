@@ -28,7 +28,7 @@ const CheckoutScreen = () => {
   const { saveOrder, error, loading } = useOrder();
   const { calculateTotal, cart } = useCart();
   const [selectedCard, setSelectedCard] = useState(savedCards[0].id);
-  const [cartItems, setCartItems] = useState([]);
+  const [cartItems, setCartItems] = useState<any[]>([]);
   const [total, setTotal] = useState(0);
   const [loadingIngOrder, setLoadingIngOrder] = useState(false);
   const router = useRouter();
@@ -39,70 +39,80 @@ const CheckoutScreen = () => {
     setTotal(totalAmount);
     setLoadingIngOrder(loading);
   }, []);
-  const handlePaymant = () => {
-    saveOrder({
-      id: "1",
-      items: cartItems,
-      total,
-    });
-    router.replace("/track");
-  };
-  return (
-    <View style={styles.container}>
-      {/* Payment Method Selection */}
-      <View style={styles.paymentMethodContainer}>
-        <FlatList
-          horizontal
-          data={paymentMethods}
-          keyExtractor={(item) => item.id}
-          renderItem={({ item }) => (
-            <TouchableOpacity
-              style={[
-                styles.paymentMethod,
-                selectedMethod === item.id && styles.selectedMethod,
-              ]}
-              onPress={() => setSelectedMethod(item.id)}
-            >
-              <Ionicons name={item.icon as any} size={24} color="black" />
-              <Text style={styles.methodText}>{item.name}</Text>
-            </TouchableOpacity>
-          )}
-        />
-      </View>
-
-      {/* Saved Card Selection */}
-      {(selectedMethod === "visa" || selectedMethod === "mastercard") && (
-        <View style={styles.cardContainer}>
-          <SelectDropdown
-            data={savedCards}
-            defaultValue={savedCards.find((card) => card.id === selectedCard)}
-            onSelect={(selectedItem: any) => setSelectedCard(selectedItem.id)}
-            buttonTextAfterSelection={(selectedItem: any) =>
-              `${selectedItem.type} **** ${selectedItem.last4}`
-            }
-            rowTextForSelection={(item: any) =>
-              `${item.type} **** ${item.last4}`
-            }
-            buttonStyle={styles.dropdownButton}
-            buttonTextStyle={styles.dropdownButtonText}
+  const handlePaymant = async () => {
+    try {
+      if (selectedMethod === "visa" || selectedMethod === "mastercard") {
+        if (!selectedCard) {
+          throw new Error("Please select a card.");
+        }
+      }
+      await saveOrder({
+        id: "1",
+        items: cartItems,
+        total,
+      });
+      setLoadingIngOrder(loading);
+      router.replace("/track");
+    } catch (error) {
+      console.error(error);
+    }
+    return (
+      <View style={styles.container}>
+        {/* Payment Method Selection */}
+        <View style={styles.paymentMethodContainer}>
+          <FlatList
+            horizontal
+            data={paymentMethods}
+            keyExtractor={(item) => item.id}
+            renderItem={({ item }) => (
+              <TouchableOpacity
+                style={[
+                  styles.paymentMethod,
+                  selectedMethod === item.id && styles.selectedMethod,
+                ]}
+                onPress={() => setSelectedMethod(item.id)}
+              >
+                <Ionicons name={item.icon as any} size={24} color="black" />
+                <Text style={styles.methodText}>{item.name}</Text>
+              </TouchableOpacity>
+            )}
           />
-
-          {/* Add New Card */}
-          <TouchableOpacity style={styles.addNewButton}>
-            <Text style={styles.addNewText}>+ ADD NEW</Text>
-          </TouchableOpacity>
         </View>
-      )}
 
-      {/* Total & Confirm Button */}
-      <Text style={styles.totalText}>TOTAL: ${total}</Text>
-      <TouchableOpacity onPress={handlePaymant} style={styles.confirmButton}>
-        <Text style={styles.confirmText}>PAY & CONFIRM</Text>
-      </TouchableOpacity>
-      {loadingIngOrder && <Text>Loading...</Text>}
-      {error && <Text>{error}</Text>}
-    </View>
-  );
+        {/* Saved Card Selection */}
+        {(selectedMethod === "visa" || selectedMethod === "mastercard") && (
+          <View style={styles.cardContainer}>
+            <SelectDropdown
+              data={savedCards}
+              defaultValue={savedCards.find((card) => card.id === selectedCard)}
+              onSelect={(selectedItem: any) => setSelectedCard(selectedItem.id)}
+              buttonTextAfterSelection={(selectedItem: any) =>
+                selectedItem.type + " **** " + selectedItem.last4
+              }
+              rowTextForSelection={(item: any) =>
+                `${item.type} **** ${item.last4}`
+              }
+              buttonStyle={styles.dropdownButton}
+              buttonTextStyle={styles.dropdownButtonText}
+            />
+
+            {/* Add New Card */}
+            <TouchableOpacity style={styles.addNewButton}>
+              <Text style={styles.addNewText}>+ ADD NEW</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
+        {/* Total & Confirm Button */}
+        <Text style={styles.totalText}>TOTAL: ${total}</Text>
+        <TouchableOpacity onPress={handlePaymant} style={styles.confirmButton}>
+          <Text style={styles.confirmText}>PAY & CONFIRM</Text>
+        </TouchableOpacity>
+        {loadingIngOrder && <Text>Loading...</Text>}
+        {error && <Text>{error}</Text>}
+      </View>
+    );
+  };
 };
 
 export default CheckoutScreen;
