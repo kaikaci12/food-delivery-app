@@ -10,7 +10,7 @@ const TrackingScreen = () => {
   const { location } = useLocation();
   const { order } = useOrder();
 
-  const [userLocation, setUserLocation] = useState(location);
+  const [userLocation, setUserLocation] = useState(null);
   const [userOrder, setUserOrder] = useState(order);
 
   // Delivery guy's location (Start Point)
@@ -21,7 +21,12 @@ const TrackingScreen = () => {
 
   // Update location & order when they change
   useEffect(() => {
-    if (location) setUserLocation(location);
+    if (location?.coords) {
+      setUserLocation({
+        latitude: location.coords.latitude,
+        longitude: location.coords.longitude,
+      });
+    }
     if (order) setUserOrder(order);
   }, [location, order]);
 
@@ -41,7 +46,7 @@ const TrackingScreen = () => {
       {userLocation && (
         <MapView
           style={styles.map}
-          initialRegion={{
+          region={{
             latitude: userLocation.latitude,
             longitude: userLocation.longitude,
             latitudeDelta: 0.05,
@@ -117,10 +122,6 @@ const styles = StyleSheet.create({
     height: 60,
     borderRadius: 10,
     marginRight: 15,
-  },
-  restaurantName: {
-    fontSize: 16,
-    fontWeight: "bold",
   },
   orderTime: {
     fontSize: 14,
