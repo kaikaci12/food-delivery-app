@@ -10,7 +10,7 @@ import SelectDropdown from "react-native-select-dropdown";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useCart } from "@/context/CartProvider";
-
+import { useOrder } from "@/hooks/useOrder";
 const paymentMethods = [
   { id: "cash", name: "Cash", icon: "cash-outline" },
   { id: "visa", name: "Visa", icon: "card-outline" },
@@ -25,16 +25,28 @@ const savedCards = [
 
 const CheckoutScreen = () => {
   const [selectedMethod, setSelectedMethod] = useState("cash");
-  const { calculateTotal } = useCart();
+  const { saveOrder, error, loading } = useOrder();
+  const { calculateTotal, cart } = useCart();
   const [selectedCard, setSelectedCard] = useState(savedCards[0].id);
+  const [cartItems, setCartItems] = useState([]);
   const [total, setTotal] = useState(0);
+  const [loadingIngOrder, setLoadingIngOrder] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
     const totalAmount = calculateTotal();
+    setCartItems(cart);
     setTotal(totalAmount);
+    setLoadingIngOrder(loading);
   }, []);
-
+  const handlePaymant = () => {
+    saveOrder({
+      id: "1",
+      items: cartItems,
+      total,
+    });
+    router.replace("/track");
+  };
   return (
     <View style={styles.container}>
       {/* Payment Method Selection */}
@@ -84,12 +96,11 @@ const CheckoutScreen = () => {
 
       {/* Total & Confirm Button */}
       <Text style={styles.totalText}>TOTAL: ${total}</Text>
-      <TouchableOpacity
-        onPress={() => router.replace("/track")}
-        style={styles.confirmButton}
-      >
+      <TouchableOpacity onPress={handlePaymant} style={styles.confirmButton}>
         <Text style={styles.confirmText}>PAY & CONFIRM</Text>
       </TouchableOpacity>
+      {loadingIngOrder && <Text>Loading...</Text>}
+      {error && <Text>{error}</Text>}
     </View>
   );
 };

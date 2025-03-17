@@ -2,13 +2,16 @@ import React, { useState, useEffect } from "react";
 import { StyleSheet, View, Text, Image } from "react-native";
 import MapView, { Marker, Polyline } from "react-native-maps";
 import { Ionicons } from "@expo/vector-icons";
+import { useLocation } from "@/hooks/useLocation";
+import { useOrder } from "@/hooks/useOrder";
 
 const TrackingScreen = () => {
-  // User's location (Destination)
-  const [userLocation, setUserLocation] = useState({
-    latitude: 37.7749,
-    longitude: -122.4194,
-  });
+  // Get user location and order data from custom hooks
+  const { location } = useLocation();
+  const { order } = useOrder();
+
+  const [userLocation, setUserLocation] = useState(location);
+  const [userOrder, setUserOrder] = useState(order);
 
   // Delivery guy's location (Start Point)
   const deliveryLocation = {
@@ -16,42 +19,53 @@ const TrackingScreen = () => {
     longitude: -122.4094,
   };
 
-  // Manually defined route waypoints (simulate a road path)
-  const routeCoordinates = [
-    deliveryLocation,
-    { latitude: 37.78, longitude: -122.412 },
-    { latitude: 37.778, longitude: -122.415 },
-    userLocation, // Final destination
-  ];
+  // Update location & order when they change
+  useEffect(() => {
+    if (location) setUserLocation(location);
+    if (order) setUserOrder(order);
+  }, [location, order]);
+
+  // Route Coordinates (Ensuring `userLocation` is valid)
+  const routeCoordinates = userLocation
+    ? [
+        deliveryLocation,
+        { latitude: 37.78, longitude: -122.412 },
+        { latitude: 37.778, longitude: -122.415 },
+        userLocation, // Final destination
+      ]
+    : [];
 
   return (
     <View style={styles.container}>
-      {/* Map */}
-      <MapView
-        style={styles.map}
-        initialRegion={{
-          latitude: userLocation.latitude,
-          longitude: userLocation.longitude,
-          latitudeDelta: 0.05,
-          longitudeDelta: 0.05,
-        }}
-      >
-        <Marker coordinate={deliveryLocation} title="Delivery Guy">
-          <Ionicons name="bicycle" size={30} color="red" />
-        </Marker>
+      {/* Render only if userLocation is available */}
+      {userLocation && (
+        <MapView
+          style={styles.map}
+          initialRegion={{
+            latitude: userLocation.latitude,
+            longitude: userLocation.longitude,
+            latitudeDelta: 0.05,
+            longitudeDelta: 0.05,
+          }}
+        >
+          {/* Delivery Guy Marker */}
+          <Marker coordinate={deliveryLocation} title="Delivery Guy">
+            <Ionicons name="bicycle" size={30} color="red" />
+          </Marker>
 
-        {/* User Location Marker */}
-        <Marker coordinate={userLocation} title="Your Location">
-          <Ionicons name="location" size={30} color="blue" />
-        </Marker>
+          {/* User Location Marker */}
+          <Marker coordinate={userLocation} title="Your Location">
+            <Ionicons name="location" size={30} color="blue" />
+          </Marker>
 
-        {/* Route Path (Orange line) */}
-        <Polyline
-          coordinates={routeCoordinates}
-          strokeWidth={5}
-          strokeColor="orange"
-        />
-      </MapView>
+          {/* Route Path (Orange line) */}
+          <Polyline
+            coordinates={routeCoordinates}
+            strokeWidth={5}
+            strokeColor="orange"
+          />
+        </MapView>
+      )}
 
       {/* Bottom Order Details Card */}
       <View style={styles.orderCard}>
@@ -60,10 +74,14 @@ const TrackingScreen = () => {
           style={styles.image}
         />
         <View>
-          <Text style={styles.restaurantName}>Uttora Coffee House</Text>
-          <Text style={styles.orderTime}>Ordered At 06 Sept, 10:00pm</Text>
-          <Text style={styles.orderItems}>2x Burger</Text>
-          <Text style={styles.orderItems}>4x Sandwich</Text>
+          <Text style={styles.orderTime}>
+            Ordered At {userOrder?.timestamp || "06 Sept, 10:00pm"}
+          </Text>
+          {userOrder?.items?.map((item, index) => (
+            <Text key={index} style={styles.orderItems}>
+              {item.quantity}x {item.name}
+            </Text>
+          ))}
         </View>
       </View>
     </View>

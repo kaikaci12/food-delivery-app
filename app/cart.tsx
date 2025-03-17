@@ -12,10 +12,12 @@ import {
 import { useCart } from "@/context/CartProvider";
 import {} from "react-native";
 import { useRouter } from "expo-router";
-
+import { useOrder } from "@/hooks/useOrder";
 const CartScreen = () => {
   const { cart, handleAddToCart, handleRemoveFromCart } = useCart();
+
   const [cartItems, setCartItems] = useState<any[]>([]);
+
   const [total, setTotal] = useState(0);
   const router = useRouter();
 
