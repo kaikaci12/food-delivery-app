@@ -7,7 +7,7 @@ import {
   ActivityIndicator,
   Image,
 } from "react-native";
-import MapView, { Marker } from "react-native-maps";
+import MapView, { Marker, PROVIDER_GOOGLE } from "react-native-maps";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useLocation } from "@/hooks/useLocation"; // Import hook
@@ -53,16 +53,20 @@ const LocationScreen = () => {
       ) : location ? (
         <View style={styles.mapContainer}>
           <MapView
+            provider={PROVIDER_GOOGLE}
             region={{
               latitude: location.coords.latitude,
               longitude: location.coords.longitude,
               latitudeDelta: 0.0922,
               longitudeDelta: 0.0421,
             }}
+            showsUserLocation
+            showsBuildings
+            showsCompass
+            scrollEnabled
+            showsMyLocationButton
             style={styles.map}
-          >
-            <Marker coordinate={location.coords} title="Your Location" />
-          </MapView>
+          ></MapView>
           <TouchableOpacity
             style={styles.continueButton}
             onPress={() => router.replace("/Dashboard")}
