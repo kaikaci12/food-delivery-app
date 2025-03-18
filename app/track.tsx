@@ -28,6 +28,7 @@ const TrackingScreen = () => {
     photo:
       "https://www.vie-aesthetics.com/wp-content/uploads/2021/09/shutterstock_1877631178-600x600.jpg",
     vehicle: "bicycle",
+    phoneNumber: "+995 598 12 34 56",
   };
 
   // Update location & order when they change
@@ -63,6 +64,15 @@ const TrackingScreen = () => {
             latitudeDelta: 0.05,
             longitudeDelta: 0.05,
           }}
+          showsUserLocation
+          showsBuildings
+          showsCompass
+          showsMyLocationButton
+          showsTraffic
+          showsScale
+          shouldRasterizeIOS
+          showsIndoors
+          showsIndoorLevelPicker
         >
           {/* Delivery Guy Marker */}
           <Marker coordinate={deliveryLocation} title="Delivery Guy">
@@ -81,9 +91,6 @@ const TrackingScreen = () => {
           </Marker>
 
           {/* User Location Marker */}
-          <Marker coordinate={userLocation} title="Your Location">
-            <Ionicons name="location" size={30} color="blue" />
-          </Marker>
 
           {/* Route Path (Orange line) */}
           <Polyline
