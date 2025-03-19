@@ -6,6 +6,7 @@ type Order = {
   items: Array<{ id: string; name: string; quantity: number }>;
   total: number;
   timestamp?: string;
+  deliveryAddress?: string;
 };
 
 type UseOrderReturnType = {

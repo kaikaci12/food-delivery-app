@@ -13,12 +13,14 @@ import { useCart } from "@/context/CartProvider";
 import {} from "react-native";
 import { useRouter } from "expo-router";
 import { useOrder } from "@/hooks/useOrder";
+import { useLocation } from "@/hooks/useLocation";
 const CartScreen = () => {
   const { cart, handleAddToCart, handleRemoveFromCart } = useCart();
   const { saveOrder, loading } = useOrder();
   const [cartItems, setCartItems] = useState<any[]>([]);
   const [orderLoading, setOrderLoading] = useState(false);
-
+  const [deliveryAddress, setDeliveryAddress] = useState<any>(null);
+  const { location, city, street } = useLocation();
   const [total, setTotal] = useState(0);
   const router = useRouter();
 
@@ -41,10 +43,21 @@ const CartScreen = () => {
       id: "1",
       items: cartItems,
       total,
+      deliveryAddress,
     });
     setOrderLoading(loading);
     router.replace("/checkout");
   };
+  useEffect(() => {
+    if (location) {
+      const address = {
+        city: city,
+        street: street,
+        location: location,
+      };
+      setDeliveryAddress(address);
+    }
+  }, [location, city, street]);
   return (
     <View style={styles.container}>
       {/* Header */}
@@ -104,11 +117,28 @@ const CartScreen = () => {
       />
 
       <View style={styles.addressSection}>
-        <Text style={styles.addressLabel}>DELIVERY ADDRESS</Text>
+        <Text style={styles.addressLabel}>{}</Text>
         <Text style={styles.editAddress}>EDIT</Text>
         <TextInput
+          onChangeText={(text) => {
+            // Split the input string by comma
+            const [city, ...streetParts] = text.split(",");
+            const street = streetParts.join(",").trim(); // Handle cases with multiple commas
+
+            // Update deliveryAddress state
+            setDeliveryAddress({
+              city: city.trim(), // Remove any extra spaces
+              street: street.trim(), // Remove any extra spaces
+              location: deliveryAddress?.location, // Preserve existing location
+            });
+          }}
           style={styles.addressText}
-          value="2118 Thornridge Cir. Syracuse"
+          value={
+            deliveryAddress?.street
+              ? `${deliveryAddress?.city}, ${deliveryAddress?.street}`
+              : deliveryAddress?.city || ""
+          }
+          placeholder="Add delivery address"
         />
       </View>
 
@@ -116,7 +146,7 @@ const CartScreen = () => {
       <View style={styles.footer}>
         <View style={styles.totalRow}>
           <Text style={styles.totalText}>TOTAL:</Text>
-          <Text style={styles.totalAmount}>${total.toFixed(2)}</Text>
+          <Text style={styles.totalAmount}>${total}</Text>
           <Text style={styles.breakdownText}>Breakdown</Text>
         </View>
         <TouchableOpacity onPress={handleOrder} style={styles.orderButton}>

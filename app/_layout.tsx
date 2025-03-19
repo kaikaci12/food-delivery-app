@@ -10,16 +10,19 @@ import * as SplashScreen from "expo-splash-screen";
 import { useEffect } from "react";
 
 import { useColorScheme } from "@/components/useColorScheme";
-import { ActivityIndicator, StatusBar } from "react-native";
+import { ActivityIndicator, Alert, StatusBar } from "react-native";
 import { useRouter } from "expo-router";
 import { useAuth } from "@/context/AuthProvider";
 export { ErrorBoundary } from "expo-router";
 import { CartProvider } from "@/context/CartProvider";
 import LoadingAnimation from "@/components/Loading";
 import { useLocation } from "@/hooks/useLocation";
+import NetInfo from "@react-native-community/netinfo";
+import RNRestart from "react-native-restart";
+
+SplashScreen.preventAutoHideAsync(); // Keep only one call
 
 export default function RootLayout() {
-  SplashScreen.preventAutoHideAsync();
   const [loaded, error] = useFonts({
     SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf"),
     "Sen-Regular": require("../assets/fonts/Sen-Regular.ttf"),
@@ -32,14 +35,25 @@ export default function RootLayout() {
   }, [error]);
 
   useEffect(() => {
-    SplashScreen.preventAutoHideAsync();
     if (loaded) {
       SplashScreen.hideAsync();
     }
   }, [loaded]);
 
+  useEffect(() => {
+    const unsubscribe = NetInfo.addEventListener((state) => {
+      if (!state.isConnected) {
+        Alert.alert("Please Connect to the Internet", "Connect and try again", [
+          { text: "Reload app", onPress: () => RNRestart.restart() },
+        ]);
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
+
   if (!loaded) {
-    return null; // Ensure nothing renders until fonts are loaded
+    return null;
   }
 
   return (
@@ -50,21 +64,17 @@ export default function RootLayout() {
 }
 
 function RootLayoutNav() {
-  const { authState, loading } = useAuth(); // Add loading state from useAuth
+  const { authState, loading } = useAuth();
   const { location } = useLocation();
   const router = useRouter();
   const colorScheme = useColorScheme();
 
   useEffect(() => {
     if (!loading) {
-      if (!authState.token && !authState.user) {
-        router.replace("/"); // Redirect to login screen if not authenticated
+      if (!authState.token || !authState.user) {
+        router.replace("/");
       } else if (authState.token && authState.user) {
-        if (!location) {
-          router.replace("/location"); // Redirect to location screen if no location
-        } else {
-          router.replace("/Dashboard"); // Redirect to Dashboard if authenticated and location is available
-        }
+        router.replace(location ? "/Dashboard" : "/location");
       }
     }
   }, [authState.token, authState.user, loading, location, router]);
@@ -87,6 +97,7 @@ function RootLayoutNav() {
           <Stack.Screen name="checkout" options={{ headerShown: false }} />
           <Stack.Screen name="track" options={{ headerShown: false }} />
           <Stack.Screen name="modal" options={{ presentation: "modal" }} />
+          <StatusBar hidden />
         </Stack>
       </CartProvider>
     </ThemeProvider>

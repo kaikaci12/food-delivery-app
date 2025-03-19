@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { StyleSheet, View, Text, Image } from "react-native";
+import { StyleSheet, View, Text, Image, Linking } from "react-native";
 import MapView, { Marker, Polyline } from "react-native-maps";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useLocation } from "@/hooks/useLocation";
@@ -16,22 +16,20 @@ const TrackingScreen = () => {
   } | null>(null);
   const [userOrder, setUserOrder] = useState(order);
 
-  // Delivery guy's location (Start Point)
   const deliveryLocation = {
-    latitude: 41.6938,
-    longitude: 44.8015,
+    latitude: 41.7151,
+    longitude: 44.8271,
   };
 
-  // Random delivery guy info
   const deliveryGuy = {
     name: "John Doe",
     photo:
       "https://www.vie-aesthetics.com/wp-content/uploads/2021/09/shutterstock_1877631178-600x600.jpg",
     vehicle: "bicycle",
     phoneNumber: "+995 598 12 34 56",
+    deliveryTime: "30 minutes",
   };
 
-  // Update location & order when they change
   useEffect(() => {
     if (location?.coords) {
       setUserLocation({
@@ -46,11 +44,15 @@ const TrackingScreen = () => {
   const routeCoordinates = userLocation
     ? [
         deliveryLocation,
-        { latitude: 37.78, longitude: -122.412 },
-        { latitude: 37.778, longitude: -122.415 },
+        { latitude: 41.71, longitude: 44.83 }, // Intermediate point
+        { latitude: 41.72, longitude: 44.84 }, // Intermediate point
         userLocation, // Final destination
       ]
     : [];
+
+  const callDeliveryGuy = () => {
+    Linking.openURL(`tel:${deliveryGuy.phoneNumber}`);
+  };
 
   return (
     <View style={styles.container}>
@@ -64,15 +66,17 @@ const TrackingScreen = () => {
             latitudeDelta: 0.05,
             longitudeDelta: 0.05,
           }}
-          showsUserLocation
           showsBuildings
           showsCompass
-          showsMyLocationButton
-          showsTraffic
-          showsScale
           shouldRasterizeIOS
           showsIndoors
           showsIndoorLevelPicker
+          scrollEnabled
+          showsMyLocationButton
+          showsScale
+          showsTraffic
+          showsUserLocation
+          showsPointsOfInterest
         >
           {/* Delivery Guy Marker */}
           <Marker coordinate={deliveryLocation} title="Delivery Guy">
@@ -82,15 +86,19 @@ const TrackingScreen = () => {
                 style={styles.deliveryGuyPhoto}
               />
               <Ionicons
-                name={deliveryGuy.vehicle}
+                name={deliveryGuy.vehicle === "bicycle" ? "bicycle" : "car"}
                 size={30}
                 color="red"
                 style={styles.deliveryIcon}
               />
+              <Text>{deliveryGuy.deliveryTime}</Text>
             </View>
           </Marker>
 
           {/* User Location Marker */}
+          <Marker coordinate={userLocation} title="Your Location">
+            <Ionicons name="person" size={30} color="blue" />
+          </Marker>
 
           {/* Route Path (Orange line) */}
           <Polyline
@@ -112,8 +120,7 @@ const TrackingScreen = () => {
         <View style={styles.orderDetails}>
           <Text style={styles.orderTime}>
             Ordered At{" "}
-            {new Date(userOrder?.timestamp ?? "").toISOString() ||
-              "06 Sept, 10:00pm"}
+            {new Date(userOrder?.timestamp ?? "").toLocaleString() || "Unknown"}
           </Text>
           {userOrder?.items?.map((item, index) => (
             <Text key={index} style={styles.orderItems}>
@@ -134,6 +141,9 @@ const TrackingScreen = () => {
           <Text style={styles.deliveryGuyVehicle}>
             On a {deliveryGuy.vehicle}
           </Text>
+          <Text style={styles.deliveryGuyPhone} onPress={callDeliveryGuy}>
+            {deliveryGuy.phoneNumber}
+          </Text>
         </View>
       </View>
     </View>
@@ -145,13 +155,14 @@ export default TrackingScreen;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: "#f5f5f5",
   },
   map: {
     flex: 1,
   },
   orderCard: {
     position: "absolute",
-    bottom: 100,
+    bottom: 20,
     left: 20,
     right: 20,
     backgroundColor: "#fff",
@@ -161,8 +172,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
     shadowColor: "#000",
     shadowOpacity: 0.1,
-    shadowRadius: 5,
-    elevation: 3,
+    shadowRadius: 10,
+    elevation: 5,
   },
   image: {
     width: 60,
@@ -176,10 +187,12 @@ const styles = StyleSheet.create({
   orderTime: {
     fontSize: 14,
     color: "gray",
+    marginBottom: 5,
   },
   orderItems: {
     fontSize: 14,
     fontWeight: "500",
+    color: "#333",
   },
   deliveryMarker: {
     alignItems: "center",
@@ -196,7 +209,7 @@ const styles = StyleSheet.create({
   },
   deliveryGuyCard: {
     position: "absolute",
-    top: 20,
+    top: 50,
     left: 20,
     right: 20,
     backgroundColor: "#fff",
@@ -206,8 +219,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
     shadowColor: "#000",
     shadowOpacity: 0.1,
-    shadowRadius: 5,
-    elevation: 3,
+    shadowRadius: 10,
+    elevation: 5,
   },
   deliveryGuyImage: {
     width: 50,
@@ -221,9 +234,16 @@ const styles = StyleSheet.create({
   deliveryGuyName: {
     fontSize: 16,
     fontWeight: "bold",
+    color: "#333",
   },
   deliveryGuyVehicle: {
     fontSize: 14,
     color: "gray",
+    marginBottom: 5,
+  },
+  deliveryGuyPhone: {
+    fontSize: 14,
+    color: "#007BFF",
+    textDecorationLine: "underline",
   },
 });
