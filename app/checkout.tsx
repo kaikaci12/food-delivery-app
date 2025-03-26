@@ -13,7 +13,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useCart } from "@/context/CartProvider";
 import { useOrder } from "@/hooks/useOrder";
-
+import { useLocalSearchParams } from "expo-router";
 const paymentMethods = [
   { id: "cash", name: "Cash", icon: "cash-outline" },
   { id: "visa", name: "Visa", icon: "card-outline" },
@@ -27,9 +27,10 @@ const savedCards = [
 ];
 
 const CheckoutScreen = () => {
+  const { address } = useLocalSearchParams();
   const [selectedMethod, setSelectedMethod] = useState("cash");
   const { saveOrder, error, loading } = useOrder();
-  const { calculateTotal, cart } = useCart();
+  const { calculateTotal, cart, handleClearCart } = useCart();
   const [selectedCard, setSelectedCard] = useState(savedCards[0]?.id || null);
   const [cartItems, setCartItems] = useState<any[]>([]);
   const [total, setTotal] = useState(0);
@@ -50,16 +51,50 @@ const CheckoutScreen = () => {
       }
     }
 
+    let orderAddress = null;
+    if (address) {
+      try {
+        orderAddress = JSON.parse(decodeURIComponent(address as string));
+      } catch (error) {
+        console.error("Error parsing order address:", error);
+      }
+    }
+
     setIsProcessing(true);
+
     try {
       await saveOrder({
         id: Math.random().toString(36).substring(7), // Generate a random order ID
         items: cartItems,
         total,
+        orderAddress: orderAddress || {
+          street: "Unknown",
+          city: "Unknown",
+          location: { latitude: 0, longitude: 0 },
+        },
       });
-      Alert.alert("Success", "Your order has been placed successfully!");
-      router.replace("/track");
+
+      console.log("Order placed successfully:", {
+        id: Math.random().toString(36).substring(7),
+        items: cartItems,
+        total,
+        orderAddress: orderAddress || {
+          street: "Unknown",
+          city: "Unknown",
+          location: { latitude: 0, longitude: 0 },
+        },
+      });
+      handleClearCart();
+      Alert.alert("Success", "Your order has been placed successfully!", [
+        {
+          text: "Track my Order",
+          onPress: () => {
+            router.replace("/track");
+          },
+        },
+      ]);
     } catch (error: any) {
+      console.error("Order placement error:", error);
       Alert.alert("Error", error.message || "Failed to place order.");
     } finally {
       setIsProcessing(false);
@@ -192,6 +227,7 @@ const styles = StyleSheet.create({
     color: "#FF6B00",
   },
   cardContainer: {
+    flexDirection: "row",
     backgroundColor: "#FFF",
     padding: 15,
     borderRadius: 10,

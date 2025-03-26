@@ -6,7 +6,14 @@ type Order = {
   items: Array<{ id: string; name: string; quantity: number }>;
   total: number;
   timestamp?: string;
-  deliveryAddress?: string;
+  orderAddress?: {
+    street?: string;
+    city?: string;
+    location?: {
+      latitude: number;
+      longitude: number;
+    };
+  };
 };
 
 type UseOrderReturnType = {
@@ -22,18 +29,19 @@ export const useOrder = (initialOrder?: Order): UseOrderReturnType => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Load saved order when the component mounts
   useEffect(() => {
     loadSavedOrder();
   }, []);
 
-  // Load the saved order from AsyncStorage
   const loadSavedOrder = async () => {
     setLoading(true);
     try {
       const savedOrder = await AsyncStorage.getItem("currentOrder");
       if (savedOrder) {
-        setOrder(JSON.parse(savedOrder));
+        const parsedOrder = JSON.parse(savedOrder);
+        if (parsedOrder && typeof parsedOrder === "object") {
+          setOrder(parsedOrder);
+        }
       }
     } catch (err) {
       setError("Failed to load saved order.");
@@ -43,7 +51,6 @@ export const useOrder = (initialOrder?: Order): UseOrderReturnType => {
     }
   };
 
-  // Save the order to AsyncStorage
   const saveOrder = async (newOrder: Order) => {
     setLoading(true);
     try {
@@ -55,7 +62,7 @@ export const useOrder = (initialOrder?: Order): UseOrderReturnType => {
         "currentOrder",
         JSON.stringify(orderWithTimestamp)
       );
-      setOrder(orderWithTimestamp); // Update local state
+      setOrder(orderWithTimestamp);
       setError(null);
     } catch (err) {
       setError("Failed to save order.");
@@ -65,12 +72,11 @@ export const useOrder = (initialOrder?: Order): UseOrderReturnType => {
     }
   };
 
-  // Clear the order from AsyncStorage
   const clearOrder = async () => {
     setLoading(true);
     try {
       await AsyncStorage.removeItem("currentOrder");
-      setOrder(null); // Clear local state
+      setOrder(null);
       setError(null);
     } catch (err) {
       setError("Failed to clear order.");

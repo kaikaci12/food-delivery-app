@@ -1,62 +1,101 @@
 import React, { useState, useEffect } from "react";
-import { StyleSheet, View, Text, Image, Linking } from "react-native";
+import {
+  StyleSheet,
+  View,
+  Text,
+  Image,
+  Linking,
+  ActivityIndicator,
+} from "react-native";
 import MapView, { Marker, Polyline } from "react-native-maps";
 import Ionicons from "@expo/vector-icons/Ionicons";
-import { useLocation } from "@/hooks/useLocation";
-import { useOrder } from "@/hooks/useOrder";
+import FontAwesome from "@expo/vector-icons/FontAwesome";
 
 const TrackingScreen = () => {
-  // Get user location and order data from custom hooks
-  const { location } = useLocation();
-  const { order } = useOrder();
-
   const [userLocation, setUserLocation] = useState<{
     latitude: number;
     longitude: number;
   } | null>(null);
-  const [userOrder, setUserOrder] = useState(order);
 
-  const deliveryLocation = {
+  const [deliveryGuyLocation, setDeliveryGuyLocation] = useState({
     latitude: 41.7151,
     longitude: 44.8271,
-  };
+  });
 
-  const deliveryGuy = {
-    name: "John Doe",
-    photo:
-      "https://www.vie-aesthetics.com/wp-content/uploads/2021/09/shutterstock_1877631178-600x600.jpg",
-    vehicle: "bicycle",
-    phoneNumber: "+995 598 12 34 56",
-    deliveryTime: "30 minutes",
+  const [userOrder, setUserOrder] = useState<any>(order); // Assuming you have the order data
+  const [isLoading, setIsLoading] = useState<boolean>(loading); // Assuming loading state
+
+  const orderAddress = userOrder?.orderAddress?.location;
+
+  // Simulate movement of delivery guy towards order address
+  const moveDeliveryGuy = () => {
+    const interval = setInterval(() => {
+      if (orderAddress) {
+        const distance = haversineDistance(
+          deliveryGuyLocation.latitude,
+          deliveryGuyLocation.longitude,
+          orderAddress.latitude,
+          orderAddress.longitude
+        );
+
+        // Stop the movement if the delivery guy reaches the destination
+        if (distance < 0.01) {
+          // Threshold for reaching destination (10 meters)
+          clearInterval(interval);
+          return;
+        }
+
+        // Move 1% of the distance towards the destination
+        const latStep =
+          (orderAddress.latitude - deliveryGuyLocation.latitude) * 0.01;
+        const lonStep =
+          (orderAddress.longitude - deliveryGuyLocation.longitude) * 0.01;
+
+        setDeliveryGuyLocation((prevLocation) => ({
+          latitude: prevLocation.latitude + latStep,
+          longitude: prevLocation.longitude + lonStep,
+        }));
+      }
+    }, 3000); // Update every 3 seconds
   };
 
   useEffect(() => {
-    if (location?.coords) {
-      setUserLocation({
-        latitude: location.coords.latitude,
-        longitude: location.coords.longitude,
-      });
+    if (orderAddress) {
+      moveDeliveryGuy();
     }
-    if (order) setUserOrder(order);
-  }, [location, order]);
+  }, [orderAddress]);
 
-  // Route Coordinates (Ensuring `userLocation` is valid)
-  const routeCoordinates = userLocation
-    ? [
-        deliveryLocation,
-        { latitude: 41.71, longitude: 44.83 }, // Intermediate point
-        { latitude: 41.72, longitude: 44.84 }, // Intermediate point
-        userLocation, // Final destination
-      ]
-    : [];
-
-  const callDeliveryGuy = () => {
-    Linking.openURL(`tel:${deliveryGuy.phoneNumber}`);
+  // Calculate the distance between two points (Haversine formula)
+  const haversineDistance = (
+    lat1: number,
+    lon1: number,
+    lat2: number,
+    lon2: number
+  ) => {
+    const R = 6371; // Earth radius in km
+    const dLat = (lat2 - lat1) * (Math.PI / 180);
+    const dLon = (lon2 - lon1) * (Math.PI / 180);
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(lat1 * (Math.PI / 180)) *
+        Math.cos(lat2 * (Math.PI / 180)) *
+        Math.sin(dLon / 2) *
+        Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c; // returns distance in km
   };
+
+  if (isLoading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#0000ff" />
+        <Text>Loading...</Text>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
-      {/* Render only if userLocation is available */}
       {userLocation && (
         <MapView
           style={styles.map}
@@ -68,30 +107,22 @@ const TrackingScreen = () => {
           }}
           showsBuildings
           showsCompass
-          shouldRasterizeIOS
-          showsIndoors
-          showsIndoorLevelPicker
-          scrollEnabled
-          showsMyLocationButton
-          showsScale
-          showsTraffic
           showsUserLocation
-          showsPointsOfInterest
         >
           {/* Delivery Guy Marker */}
-          <Marker coordinate={deliveryLocation} title="Delivery Guy">
+          <Marker coordinate={deliveryGuyLocation} title="Delivery Guy">
             <View style={styles.deliveryMarker}>
               <Image
-                source={{ uri: deliveryGuy.photo }}
+                source={{ uri: "delivery-guy-photo-url" }} // Replace with actual URL
                 style={styles.deliveryGuyPhoto}
               />
               <Ionicons
-                name={deliveryGuy.vehicle === "bicycle" ? "bicycle" : "car"}
+                name="bicycle"
                 size={30}
                 color="red"
                 style={styles.deliveryIcon}
               />
-              <Text>{deliveryGuy.deliveryTime}</Text>
+              <Text>{userOrder?.deliveryTime}</Text>
             </View>
           </Marker>
 
@@ -100,66 +131,74 @@ const TrackingScreen = () => {
             <Ionicons name="person" size={30} color="blue" />
           </Marker>
 
-          {/* Route Path (Orange line) */}
+          {/* Order Address Marker */}
+          {orderAddress && (
+            <Marker coordinate={orderAddress} title="Delivery Address">
+              <FontAwesome name="flag" size={30} color="yellow" />
+            </Marker>
+          )}
+
+          {/* Route Polyline */}
           <Polyline
-            coordinates={routeCoordinates}
+            coordinates={[deliveryGuyLocation, userLocation, orderAddress]}
             strokeWidth={5}
             strokeColor="orange"
           />
         </MapView>
       )}
 
-      {/* Bottom Order Details Card */}
+      {/* Order Info */}
       <View style={styles.orderCard}>
         <Image
-          source={{
-            uri: "https://static.vecteezy.com/system/resources/thumbnails/033/494/670/large/animated-illustration-of-foods-menu-burger-french-fries-and-soft-drink-suitable-for-foods-promotion-free-video.jpg",
-          }}
+          source={{ uri: "order-image-url" }} // Replace with actual URL
           style={styles.image}
         />
         <View style={styles.orderDetails}>
           <Text style={styles.orderTime}>
             Ordered At{" "}
-            {new Date(userOrder?.timestamp ?? "").toLocaleString() || "Unknown"}
+            {userOrder?.timestamp
+              ? new Date(userOrder.timestamp).toLocaleString()
+              : "Unknown"}
           </Text>
-          {userOrder?.items?.map((item, index) => (
-            <Text key={index} style={styles.orderItems}>
-              {item.quantity}x {item.name}
-            </Text>
-          ))}
+          {Array.isArray(userOrder?.items) &&
+            userOrder.items.map((item: any, index: number) => (
+              <Text key={index} style={styles.orderItems}>
+                {item.quantity}x {item.name}
+              </Text>
+            ))}
+          <Text style={styles.deliveryAddress}>
+            <Text style={{ fontWeight: "bold" }}>Delivery Address: </Text>
+            {userOrder?.orderAddress?.street
+              ? `${userOrder.orderAddress.street}, ${userOrder.orderAddress.city}`
+              : userOrder?.orderAddress?.city ?? "Unknown"}
+          </Text>
         </View>
       </View>
 
-      {/* Delivery Guy Info Card */}
+      {/* Delivery Guy Info */}
       <View style={styles.deliveryGuyCard}>
         <Image
-          source={{ uri: deliveryGuy.photo }}
+          source={{ uri: "delivery-guy-photo-url" }} // Replace with actual URL
           style={styles.deliveryGuyImage}
         />
         <View style={styles.deliveryGuyInfo}>
-          <Text style={styles.deliveryGuyName}>{deliveryGuy.name}</Text>
-          <Text style={styles.deliveryGuyVehicle}>
-            On a {deliveryGuy.vehicle}
+          <Text style={styles.deliveryGuyName}>
+            {userOrder?.deliveryGuy?.name}
           </Text>
-          <Text style={styles.deliveryGuyPhone} onPress={callDeliveryGuy}>
-            {deliveryGuy.phoneNumber}
+          <Text style={styles.deliveryGuyVehicle}>
+            On a {userOrder?.deliveryGuy?.vehicle}
+          </Text>
+          <Text style={styles.deliveryGuyPhone}>
+            {userOrder?.deliveryGuy?.phoneNumber}
           </Text>
         </View>
       </View>
     </View>
   );
 };
-
-export default TrackingScreen;
-
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#f5f5f5",
-  },
-  map: {
-    flex: 1,
-  },
+  container: { flex: 1, backgroundColor: "#f5f5f5" },
+  map: { flex: 1 },
   orderCard: {
     position: "absolute",
     bottom: 20,
@@ -175,28 +214,17 @@ const styles = StyleSheet.create({
     shadowRadius: 10,
     elevation: 5,
   },
-  image: {
-    width: 60,
-    height: 60,
-    borderRadius: 10,
-    marginRight: 15,
-  },
-  orderDetails: {
-    flex: 1,
-  },
-  orderTime: {
-    fontSize: 14,
-    color: "gray",
-    marginBottom: 5,
-  },
-  orderItems: {
+  image: { width: 60, height: 60, borderRadius: 10, marginRight: 15 },
+  orderDetails: { flex: 1 },
+  orderTime: { fontSize: 14, color: "gray", marginBottom: 5 },
+  orderItems: { fontSize: 14, fontWeight: "500", color: "#333" },
+  deliveryAddress: {
     fontSize: 14,
     fontWeight: "500",
     color: "#333",
+    marginTop: 10,
   },
-  deliveryMarker: {
-    alignItems: "center",
-  },
+  deliveryMarker: { alignItems: "center" },
   deliveryGuyPhoto: {
     width: 40,
     height: 40,
@@ -204,9 +232,7 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: "#fff",
   },
-  deliveryIcon: {
-    marginTop: 5,
-  },
+  deliveryIcon: { marginTop: 5 },
   deliveryGuyCard: {
     position: "absolute",
     top: 50,
@@ -228,22 +254,25 @@ const styles = StyleSheet.create({
     borderRadius: 25,
     marginRight: 15,
   },
-  deliveryGuyInfo: {
-    flex: 1,
-  },
-  deliveryGuyName: {
-    fontSize: 16,
-    fontWeight: "bold",
-    color: "#333",
-  },
-  deliveryGuyVehicle: {
-    fontSize: 14,
-    color: "gray",
-    marginBottom: 5,
-  },
+  deliveryGuyInfo: { flex: 1 },
+  deliveryGuyName: { fontSize: 16, fontWeight: "bold", color: "#333" },
+  deliveryGuyVehicle: { fontSize: 14, color: "gray", marginBottom: 5 },
   deliveryGuyPhone: {
     fontSize: 14,
     color: "#007BFF",
     textDecorationLine: "underline",
   },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  noPermissionContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#fff",
+  },
 });
+
+export default TrackingScreen;

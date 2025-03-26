@@ -32,30 +32,36 @@ const CartScreen = () => {
           acc + (Number(item.price) || 0) * (Number(item.quantity) || 0),
         0
       );
-      console.log(cart);
+
       setTotal(totalAmount);
     };
     getCartItems();
   }, [cart]);
 
   const handleOrder = async () => {
-    await saveOrder({
-      id: "1",
-      items: cartItems,
-      total,
-      deliveryAddress,
-    });
-    setOrderLoading(loading);
-    router.replace("/checkout");
+    setOrderLoading(true);
+
+    if (!deliveryAddress) {
+      Alert.alert("Error", "Please select a delivery address.");
+      setOrderLoading(false);
+      return;
+    }
+
+    const serializedAddress = encodeURIComponent(
+      JSON.stringify(deliveryAddress)
+    );
+    router.push(`/checkout?address=${serializedAddress}`);
   };
   useEffect(() => {
-    if (location) {
-      const address = {
+    if (
+      location &&
+      (city !== deliveryAddress?.city || street !== deliveryAddress?.street)
+    ) {
+      setDeliveryAddress({
         city: city,
         street: street,
         location: location,
-      };
-      setDeliveryAddress(address);
+      });
     }
   }, [location, city, street]);
   return (
@@ -115,44 +121,57 @@ const CartScreen = () => {
           </View>
         )}
       />
+      {cartItems.length > 0 ? (
+        <View>
+          <View style={styles.addressSection}>
+            <Text style={styles.addressLabel}>Delivery Address</Text>
+            <Text style={styles.editAddress}>EDIT</Text>
+            <TextInput
+              onChangeText={(text) => {
+                const parts = text.split(",").map((part) => part.trim());
+                const newCity =
+                  parts.length > 1 ? parts[0] : deliveryAddress?.city || "";
+                const newStreet =
+                  parts.length > 1 ? parts.slice(1).join(", ") : parts[0];
 
-      <View style={styles.addressSection}>
-        <Text style={styles.addressLabel}>{}</Text>
-        <Text style={styles.editAddress}>EDIT</Text>
-        <TextInput
-          onChangeText={(text) => {
-            // Split the input string by comma
-            const [city, ...streetParts] = text.split(",");
-            const street = streetParts.join(",").trim(); // Handle cases with multiple commas
+                setDeliveryAddress({
+                  city: newCity,
+                  street: newStreet,
+                  location: deliveryAddress?.location,
+                });
+              }}
+              style={styles.addressText}
+              value={
+                deliveryAddress?.street
+                  ? `${deliveryAddress?.city}, ${deliveryAddress?.street}`
+                  : deliveryAddress?.city || ""
+              }
+              placeholder="Add delivery address"
+            />
+          </View>
 
-            // Update deliveryAddress state
-            setDeliveryAddress({
-              city: city.trim(), // Remove any extra spaces
-              street: street.trim(), // Remove any extra spaces
-              location: deliveryAddress?.location, // Preserve existing location
-            });
-          }}
-          style={styles.addressText}
-          value={
-            deliveryAddress?.street
-              ? `${deliveryAddress?.city}, ${deliveryAddress?.street}`
-              : deliveryAddress?.city || ""
-          }
-          placeholder="Add delivery address"
-        />
-      </View>
-
-      {/* Total and Button */}
-      <View style={styles.footer}>
-        <View style={styles.totalRow}>
-          <Text style={styles.totalText}>TOTAL:</Text>
-          <Text style={styles.totalAmount}>${total}</Text>
-          <Text style={styles.breakdownText}>Breakdown</Text>
+          {/* Total and Button */}
+          <View style={styles.footer}>
+            <View style={styles.totalRow}>
+              <Text style={styles.totalText}>TOTAL:</Text>
+              <Text style={styles.totalAmount}>${total}</Text>
+              <Text style={styles.breakdownText}>Breakdown</Text>
+            </View>
+            <TouchableOpacity onPress={handleOrder} style={styles.orderButton}>
+              <Text style={styles.orderButtonText}>PLACE ORDER</Text>
+            </TouchableOpacity>
+          </View>
         </View>
-        <TouchableOpacity onPress={handleOrder} style={styles.orderButton}>
-          <Text style={styles.orderButtonText}>PLACE ORDER</Text>
-        </TouchableOpacity>
-      </View>
+      ) : (
+        <Text
+          style={[
+            styles.buttonText,
+            { position: "absolute", top: 100, left: 50 },
+          ]}
+        >
+          Cart Is empty. Try Adding Items
+        </Text>
+      )}
     </View>
   );
 };
