@@ -160,7 +160,7 @@ const CheckoutScreen = () => {
             {savedCards.length > 0 ? (
               <SelectDropdown
                 data={savedCards}
-                defaultValue={savedCards.find(
+                defaultValueByIndex={savedCards.findIndex(
                   (card) => card.id === selectedCard
                 )}
                 onSelect={(selectedItem: any) =>

@@ -12,8 +12,6 @@ type LocationContextType = {
   loading: boolean;
   tracking: boolean;
   requestLocation: () => Promise<void>;
-  startTracking: () => Promise<void>;
-  stopTracking: () => void;
 };
 
 // Default values for the context
@@ -28,6 +26,4 @@ export const LocationContext = createContext<LocationContextType>({
   loading: false,
   tracking: false,
   requestLocation: async () => {},
-  startTracking: async () => {},
-  stopTracking: () => {},
 });

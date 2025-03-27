@@ -26,7 +26,6 @@ export const LocationProvider: React.FC<{ children: React.ReactNode }> = ({
     checkPermission();
     loadSavedLocation();
     checkLocationServices();
-    return () => stopTracking();
   }, []);
 
   const checkPermission = async () => {
@@ -107,67 +106,6 @@ export const LocationProvider: React.FC<{ children: React.ReactNode }> = ({
     setLoading(false);
   };
 
-  const startTracking = async () => {
-    if (tracking) return;
-
-    const { status } = await Location.requestForegroundPermissionsAsync();
-    if (status !== "granted") {
-      setPermissionGranted(false);
-      setErrorMsg("Location permission is required.");
-      return;
-    }
-
-    setPermissionGranted(true);
-    const sub = await Location.watchPositionAsync(
-      {
-        accuracy: Location.Accuracy.Highest,
-        timeInterval: 2000,
-        distanceInterval: 2,
-      },
-      async (userLocation) => {
-        const address = await Location.reverseGeocodeAsync(userLocation.coords);
-
-        if (!address || address.length === 0) {
-          setErrorMsg("Unable to retrieve address.");
-          return;
-        }
-
-        const newCity = address[0]?.city || "Unknown City";
-        const newStreet = address[0]?.street || "";
-
-        // Prevent unnecessary re-renders
-        if (
-          location?.coords.latitude !== userLocation.coords.latitude ||
-          location?.coords.longitude !== userLocation.coords.longitude
-        ) {
-          setLocation(userLocation);
-          setCity(newCity);
-          setStreet(newStreet);
-
-          await AsyncStorage.setItem(
-            "locationData",
-            JSON.stringify({
-              location: userLocation,
-              city: newCity,
-              street: newStreet,
-            })
-          );
-        }
-      }
-    );
-
-    setSubscription(sub);
-    setTracking(true);
-  };
-
-  const stopTracking = () => {
-    if (subscription) {
-      subscription.remove();
-      setSubscription(null);
-    }
-    setTracking(false);
-  };
-
   return (
     <LocationContext.Provider
       value={{
@@ -181,8 +119,6 @@ export const LocationProvider: React.FC<{ children: React.ReactNode }> = ({
         loading,
         tracking,
         requestLocation,
-        startTracking,
-        stopTracking,
       }}
     >
       {children}

@@ -1,31 +1,38 @@
 import React, { useState, useEffect } from "react";
-import { StyleSheet, View, Text, Image, Linking } from "react-native";
+import {
+  StyleSheet,
+  View,
+  Text,
+  Image,
+  Linking,
+  Alert,
+  TouchableOpacity,
+} from "react-native";
 import MapView, { Marker, Polyline } from "react-native-maps";
-import { Alert } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useLocation } from "@/context/LocationProvider";
 import { useOrder } from "@/hooks/useOrder";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { Order } from "@/hooks/useOrder";
-import * as Updates from "expo-updates";
+import { useRouter } from "expo-router";
+
 const TrackingScreen = () => {
   const {
     location,
     tracking,
     requestLocation,
     errorMsg,
-    startTracking,
     checkLocationServices,
     locationEnabled,
   } = useLocation();
-  console.log(location);
-  const { order, loading } = useOrder();
-
+  const { order, loading, clearOrder } = useOrder(); // Ensure clearOrder function exists
+  const router = useRouter();
   const [userLocation, setUserLocation] = useState<{
     latitude: number;
     longitude: number;
   } | null>(null);
   const [userOrder, setUserOrder] = useState<Order | null>(null);
+
   const deliveryGuy = {
     name: "John Doe",
     photo:
@@ -33,21 +40,8 @@ const TrackingScreen = () => {
     vehicle: "bicycle",
     phoneNumber: "+995598123456",
     deliveryTime: "30 minutes",
-    location: {
-      latitude: 41.7151,
-
-      longitude: 44.8271,
-    },
+    location: { latitude: 41.7151, longitude: 44.8271 },
   };
-  useEffect(() => {
-    checkLocationServices();
-
-    if (locationEnabled === false) {
-      Alert.alert("Location Disabled", "Please enable location services", [
-        { text: "OK" },
-      ]);
-    }
-  }, [locationEnabled]);
 
   useEffect(() => {
     if (location?.coords) {
@@ -56,13 +50,12 @@ const TrackingScreen = () => {
         longitude: location.coords.longitude,
       });
     }
-  }, [location, locationEnabled]);
+  }, [location]);
+
   useEffect(() => {
     if (order) {
       setUserOrder(order);
     }
-
-    console.log("order coords from tracking", order?.orderAddress?.location);
   }, [order]);
 
   const routeCoordinates = userLocation
@@ -78,6 +71,15 @@ const TrackingScreen = () => {
     if (deliveryGuy.phoneNumber) {
       Linking.openURL(`tel:${deliveryGuy.phoneNumber.replace(/\s+/g, "")}`);
     }
+  };
+
+  const handleOrderReceived = async () => {
+    try {
+      await clearOrder();
+      Alert.alert("Order Received", "Thank you for confirming your order!", [
+        { text: "OK", onPress: () => router.replace("/Dashboard") },
+      ]);
+    } catch (error) {}
   };
 
   return (
@@ -97,12 +99,11 @@ const TrackingScreen = () => {
           showsMyLocationButton
         >
           <Marker coordinate={deliveryGuy.location} title="Delivery Guy">
-            <View style={styles.deliveryMarker}>
+            <View>
               <Ionicons
                 name={deliveryGuy.vehicle === "bicycle" ? "bicycle" : "car"}
                 size={10}
                 color="red"
-                style={styles.deliveryIcon}
               />
               <Text>{deliveryGuy.deliveryTime}</Text>
             </View>
@@ -130,49 +131,74 @@ const TrackingScreen = () => {
         </MapView>
       )}
 
-      <View style={styles.orderCard}>
-        <Image
-          source={{
-            uri: "https://static.vecteezy.com/system/resources/thumbnails/033/494/670/large/animated-illustration-of-foods-menu-burger-french-fries-and-soft-drink-suitable-for-foods-promotion-free-video.jpg",
-          }}
-          style={styles.image}
-        />
-        <View style={styles.orderDetails}>
-          <Text style={styles.orderTime}>
-            Ordered At{" "}
-            {userOrder?.timestamp
-              ? new Date(userOrder.timestamp).toLocaleString()
-              : "Unknown"}
-          </Text>
-          {userOrder?.items.map((item: any, index: number) => (
-            <Text key={index} style={styles.orderItems}>
-              {item.quantity}x {item.name}
-            </Text>
-          ))}
-          <Text style={styles.deliveryAddress}>
-            <Text style={{ fontWeight: "bold" }}>Delivery Address: </Text>
-            {userOrder?.orderAddress?.street
-              ? `${userOrder.orderAddress.street}, ${userOrder.orderAddress.city}`
-              : userOrder?.orderAddress?.city ?? "Unknown"}
-          </Text>
-        </View>
-      </View>
+      {userOrder ? (
+        <>
+          <View style={styles.orderCard}>
+            <Image
+              source={{
+                uri: "https://static.vecteezy.com/system/resources/thumbnails/033/494/670/large/animated-illustration-of-foods-menu-burger-french-fries-and-soft-drink-suitable-for-foods-promotion-free-video.jpg",
+              }}
+              style={styles.image}
+            />
+            <View style={styles.orderDetails}>
+              <Text style={styles.orderTime}>
+                Ordered At{" "}
+                {userOrder?.timestamp
+                  ? new Date(userOrder.timestamp).toLocaleString()
+                  : "Unknown"}
+              </Text>
+              {userOrder?.items.map((item, index) => (
+                <Text key={index} style={styles.orderItems}>
+                  {item.quantity}x {item.name}
+                </Text>
+              ))}
+              <Text style={styles.deliveryAddress}>
+                <Text style={{ fontWeight: "bold" }}>Delivery Address: </Text>
+                {userOrder?.orderAddress?.street
+                  ? `${userOrder.orderAddress.street}, ${userOrder.orderAddress.city}`
+                  : userOrder?.orderAddress?.city ?? "Unknown"}
+              </Text>
+            </View>
+          </View>
 
-      <View style={styles.deliveryGuyCard}>
-        <Image
-          source={{ uri: deliveryGuy.photo }}
-          style={styles.deliveryGuyImage}
-        />
-        <View style={styles.deliveryGuyInfo}>
-          <Text style={styles.deliveryGuyName}>{deliveryGuy.name}</Text>
-          <Text style={styles.deliveryGuyVehicle}>
-            On a {deliveryGuy.vehicle}
-          </Text>
-          <Text style={styles.deliveryGuyPhone} onPress={callDeliveryGuy}>
-            {deliveryGuy.phoneNumber}
+          <View style={styles.deliveryGuyCard}>
+            <Image
+              source={{ uri: deliveryGuy.photo }}
+              style={styles.deliveryGuyImage}
+            />
+            <View style={styles.deliveryGuyInfo}>
+              <Text style={styles.deliveryGuyName}>{deliveryGuy.name}</Text>
+              <Text style={styles.deliveryGuyVehicle}>
+                On a {deliveryGuy.vehicle}
+              </Text>
+              <Text style={styles.deliveryGuyPhone} onPress={callDeliveryGuy}>
+                {deliveryGuy.phoneNumber}
+              </Text>
+            </View>
+          </View>
+
+          {/* Received Order Section */}
+          <View style={styles.receivedOrderContainer}>
+            <Text style={styles.receivedOrderText}>
+              Have you received your order?
+            </Text>
+            <TouchableOpacity
+              style={styles.receivedOrderButton}
+              onPress={handleOrderReceived}
+            >
+              <Text style={styles.receivedOrderButtonText}>
+                Yes, I Received It
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </>
+      ) : (
+        <View style={styles.noOrderContainer}>
+          <Text style={styles.noOrderText}>
+            No active orders at the moment.
           </Text>
         </View>
-      </View>
+      )}
     </View>
   );
 };
@@ -184,7 +210,7 @@ const styles = StyleSheet.create({
   map: { flex: 1 },
   orderCard: {
     position: "absolute",
-    bottom: 20,
+    bottom: 90,
     left: 20,
     right: 20,
     backgroundColor: "#fff",
@@ -192,9 +218,6 @@ const styles = StyleSheet.create({
     borderRadius: 15,
     flexDirection: "row",
     alignItems: "center",
-    shadowColor: "#000",
-    shadowOpacity: 0.1,
-    shadowRadius: 10,
     elevation: 5,
   },
   image: { width: 60, height: 60, borderRadius: 10, marginRight: 15 },
@@ -207,15 +230,27 @@ const styles = StyleSheet.create({
     color: "#333",
     marginTop: 10,
   },
-  deliveryMarker: { alignItems: "center" },
-  deliveryGuyPhoto: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    borderWidth: 2,
-    borderColor: "#fff",
+
+  receivedOrderContainer: {
+    position: "absolute",
+    bottom: 20,
+    left: 20,
+    right: 20,
+    backgroundColor: "#fff",
+    padding: 15,
+    borderRadius: 15,
+    alignItems: "center",
+    elevation: 5,
   },
-  deliveryIcon: { marginTop: 5 },
+  receivedOrderText: { fontSize: 16, fontWeight: "bold", marginBottom: 10 },
+  receivedOrderButton: {
+    backgroundColor: "green",
+    padding: 10,
+    borderRadius: 10,
+  },
+  receivedOrderButtonText: { color: "#fff", fontWeight: "bold" },
+  noOrderContainer: { flex: 1, justifyContent: "center", alignItems: "center" },
+  noOrderText: { fontSize: 16, fontWeight: "bold", color: "gray" },
   deliveryGuyCard: {
     position: "absolute",
     top: 50,
@@ -226,10 +261,11 @@ const styles = StyleSheet.create({
     borderRadius: 15,
     flexDirection: "row",
     alignItems: "center",
-    shadowColor: "#000",
-    shadowOpacity: 0.1,
-    shadowRadius: 10,
     elevation: 5,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
   },
   deliveryGuyImage: {
     width: 50,
@@ -237,12 +273,23 @@ const styles = StyleSheet.create({
     borderRadius: 25,
     marginRight: 15,
   },
-  deliveryGuyInfo: { flex: 1 },
-  deliveryGuyName: { fontSize: 16, fontWeight: "bold", color: "#333" },
-  deliveryGuyVehicle: { fontSize: 14, color: "gray", marginBottom: 5 },
+  deliveryGuyInfo: {
+    flex: 1,
+    justifyContent: "center",
+  },
+  deliveryGuyName: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "#333",
+  },
+  deliveryGuyVehicle: {
+    fontSize: 14,
+    color: "gray",
+  },
   deliveryGuyPhone: {
     fontSize: 14,
-    color: "#007BFF",
+    color: "blue",
     textDecorationLine: "underline",
+    marginTop: 5,
   },
 });
