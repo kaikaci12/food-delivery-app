@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-type Order = {
+export type Order = {
   id: string;
   items: Array<{ id: string; name: string; quantity: number }>;
   total: number;
@@ -24,8 +24,8 @@ type UseOrderReturnType = {
   error: string | null;
 };
 
-export const useOrder = (initialOrder?: Order): UseOrderReturnType => {
-  const [order, setOrder] = useState<Order | null>(initialOrder || null);
+export const useOrder = () => {
+  const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -39,9 +39,7 @@ export const useOrder = (initialOrder?: Order): UseOrderReturnType => {
       const savedOrder = await AsyncStorage.getItem("currentOrder");
       if (savedOrder) {
         const parsedOrder = JSON.parse(savedOrder);
-        if (parsedOrder && typeof parsedOrder === "object") {
-          setOrder(parsedOrder);
-        }
+        saveOrder(parsedOrder);
       }
     } catch (err) {
       setError("Failed to load saved order.");
@@ -62,6 +60,7 @@ export const useOrder = (initialOrder?: Order): UseOrderReturnType => {
         "currentOrder",
         JSON.stringify(orderWithTimestamp)
       );
+      console.log("order saved to Async storage", orderWithTimestamp);
       setOrder(orderWithTimestamp);
       setError(null);
     } catch (err) {

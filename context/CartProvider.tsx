@@ -22,7 +22,7 @@ export const CartProvider = ({ children }: any) => {
         acc + (Number(item.price) || 0) * (Number(item.quantity) || 0),
       0
     );
-    return totalAmount.toFixed(2);
+    return totalAmount;
   };
   const updateCartStorage = async (updatedCart: any[]) => {
     try {

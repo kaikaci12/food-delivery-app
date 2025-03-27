@@ -4,7 +4,7 @@ import Feather from "@expo/vector-icons/Feather";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useCart } from "@/context/CartProvider";
 import { useRouter } from "expo-router";
-import { useLocation } from "@/hooks/useLocation";
+import { useLocation } from "@/context/LocationProvider";
 const HeaderBar = () => {
   const [cartItems, setCartItems] = useState<any[]>([]);
   const [location, setLocation] = useState<any>({});

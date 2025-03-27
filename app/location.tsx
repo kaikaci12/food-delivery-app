@@ -10,7 +10,7 @@ import {
 import MapView, { Marker, PROVIDER_GOOGLE } from "react-native-maps";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { useLocation } from "@/hooks/useLocation"; // Import hook
+import { useLocation } from "@/context/LocationProvider";
 import LoadingAnimation from "@/components/Loading";
 
 const LocationScreen = () => {

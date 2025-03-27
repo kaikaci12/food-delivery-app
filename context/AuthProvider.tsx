@@ -10,7 +10,7 @@ import {
 } from "firebase/auth";
 import { db } from "@/firebaseConfig";
 import * as SecureStore from "expo-secure-store";
-import { setDoc, doc, onSnapshot } from "firebase/firestore";
+import { setDoc, doc, onSnapshot, getDoc } from "firebase/firestore";
 
 const TOKEN_KEY = "myjwt";
 const UID_KEY = "userUid"; // Key for storing the user's UID in SecureStore
@@ -26,6 +26,44 @@ const AuthProvider = ({ children }: any) => {
 
   const [loading, setLoading] = useState(true); // Add a loading state
 
+  useEffect(() => {
+    const loadUser = async () => {
+      try {
+        const uid = await SecureStore.getItemAsync(UID_KEY);
+        const token = await SecureStore.getItemAsync(TOKEN_KEY);
+        if (uid) {
+          const userRef = doc(db, "users", uid);
+          const user = await getDoc(userRef);
+          setAuthState({
+            token,
+            user,
+          });
+          setLoading(false);
+        } else {
+          console.log("uid is null");
+        }
+      } catch (error) {
+        console.log(error);
+      }
+    };
+
+    loadUser();
+  }, []);
+  const fetchUserData = async (uid: string) => {
+    try {
+      const userRef = doc(db, "users", uid);
+      const userSnap = await getDoc(userRef);
+      if (userSnap.exists()) {
+        setAuthState((prev) => ({
+          ...prev,
+          user: userSnap.data(),
+        }));
+      }
+    } catch (error) {
+      console.error("Error fetching user data:", error);
+    }
+  };
+
   const saveUidToStorage = async (uid: string) => {
     try {
       await SecureStore.setItemAsync(UID_KEY, uid);
@@ -33,19 +71,6 @@ const AuthProvider = ({ children }: any) => {
       console.error("Failed to save UID to SecureStore:", error);
     }
   };
-
-  // Load user UID from SecureStore
-  const loadUidFromStorage = async () => {
-    try {
-      const uid = await SecureStore.getItemAsync(UID_KEY);
-      return uid;
-    } catch (error) {
-      console.error("Failed to load UID from SecureStore:", error);
-      return null;
-    }
-  };
-
-  // Clear user UID from SecureStore
   const clearUidFromStorage = async () => {
     try {
       await SecureStore.deleteItemAsync(UID_KEY);
@@ -53,61 +78,6 @@ const AuthProvider = ({ children }: any) => {
       console.error("Failed to clear UID from SecureStore:", error);
     }
   };
-
-  // Fetch user data from Firestore using UID
-  const fetchUserData = async (uid: string) => {
-    const userRef = doc(db, "users", uid);
-    const unsubscribe = onSnapshot(userRef, (docSnap) => {
-      if (docSnap.exists()) {
-        const userProfile = docSnap.data(); // Get the latest user data
-        setAuthState((prev) => ({ ...prev, user: userProfile }));
-      } else {
-        console.error("User document does not exist in Firestore");
-        setAuthState((prev) => ({ ...prev, user: null }));
-      }
-    });
-
-    return unsubscribe; // Return the unsubscribe function for cleanup
-  };
-
-  useEffect(() => {
-    let unsubscribeSnapshot: (() => void) | null = null;
-
-    const initializeAuth = async () => {
-      const uid = await loadUidFromStorage();
-      if (uid) {
-        unsubscribeSnapshot = await fetchUserData(uid);
-      }
-      setLoading(false);
-    };
-
-    initializeAuth();
-
-    const unsubscribeAuth = onAuthStateChanged(auth, async (user) => {
-      if (user) {
-        const token = await user.getIdToken();
-        await SecureStore.setItemAsync(TOKEN_KEY, token);
-        await saveUidToStorage(user.uid);
-
-        if (unsubscribeSnapshot) unsubscribeSnapshot(); // Cleanup old snapshot
-        unsubscribeSnapshot = await fetchUserData(user.uid);
-
-        setAuthState((prev) => ({ ...prev, token }));
-      } else {
-        await SecureStore.deleteItemAsync(TOKEN_KEY);
-        await clearUidFromStorage();
-        setAuthState({ token: null, user: null });
-
-        if (unsubscribeSnapshot) unsubscribeSnapshot();
-      }
-      setLoading(false);
-    });
-
-    return () => {
-      unsubscribeAuth();
-      if (unsubscribeSnapshot) unsubscribeSnapshot();
-    };
-  }, []);
 
   const register = async (
     username: string,
@@ -133,6 +103,10 @@ const AuthProvider = ({ children }: any) => {
       await setDoc(userRef, userProfile);
       await SecureStore.setItemAsync(TOKEN_KEY, await user.getIdToken());
       await saveUidToStorage(user.uid);
+      setAuthState({
+        token: await user.getIdToken(),
+        user: userProfile,
+      });
     } catch (error: any) {
       console.log(error.message);
       throw new Error(error.message);
@@ -150,7 +124,6 @@ const AuthProvider = ({ children }: any) => {
       await SecureStore.setItemAsync(TOKEN_KEY, token);
       await saveUidToStorage(userCredentials.user.uid);
 
-      // Fetch user data from Firestore
       await fetchUserData(userCredentials.user.uid);
     } catch (error: any) {
       throw new Error(error.message);

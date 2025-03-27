@@ -1,98 +1,86 @@
 import React, { useState, useEffect } from "react";
-import {
-  StyleSheet,
-  View,
-  Text,
-  Image,
-  Linking,
-  ActivityIndicator,
-} from "react-native";
+import { StyleSheet, View, Text, Image, Linking } from "react-native";
 import MapView, { Marker, Polyline } from "react-native-maps";
+import { Alert } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
+import { useLocation } from "@/context/LocationProvider";
+import { useOrder } from "@/hooks/useOrder";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
-
+import { Order } from "@/hooks/useOrder";
 const TrackingScreen = () => {
+  const { location, tracking, requestLocation, errorMsg, startTracking } =
+    useLocation();
+  console.log(location);
+  const { order, loading } = useOrder();
+
   const [userLocation, setUserLocation] = useState<{
     latitude: number;
     longitude: number;
   } | null>(null);
+  const [userOrder, setUserOrder] = useState<Order | null>(null);
+  const deliveryGuy = {
+    name: "John Doe",
+    photo:
+      "https://www.vie-aesthetics.com/wp-content/uploads/2021/09/shutterstock_1877631178-600x600.jpg",
+    vehicle: "bicycle",
+    phoneNumber: "+995598123456",
+    deliveryTime: "30 minutes",
+    location: {
+      latitude: 41.7151,
 
-  const [deliveryGuyLocation, setDeliveryGuyLocation] = useState({
-    latitude: 41.7151,
-    longitude: 44.8271,
-  });
-
-  const [userOrder, setUserOrder] = useState<any>(order); // Assuming you have the order data
-  const [isLoading, setIsLoading] = useState<boolean>(loading); // Assuming loading state
-
-  const orderAddress = userOrder?.orderAddress?.location;
-
-  // Simulate movement of delivery guy towards order address
-  const moveDeliveryGuy = () => {
-    const interval = setInterval(() => {
-      if (orderAddress) {
-        const distance = haversineDistance(
-          deliveryGuyLocation.latitude,
-          deliveryGuyLocation.longitude,
-          orderAddress.latitude,
-          orderAddress.longitude
-        );
-
-        // Stop the movement if the delivery guy reaches the destination
-        if (distance < 0.01) {
-          // Threshold for reaching destination (10 meters)
-          clearInterval(interval);
+      longitude: 44.8271,
+    },
+  };
+  useEffect(() => {
+    const handleTracking = async () => {
+      try {
+        if (!tracking) {
+          Alert.alert(
+            "Location Disabled",
+            "Please enable location services to track your order.",
+            [{ text: "OK", onPress: requestLocation }]
+          );
           return;
         }
-
-        // Move 1% of the distance towards the destination
-        const latStep =
-          (orderAddress.latitude - deliveryGuyLocation.latitude) * 0.01;
-        const lonStep =
-          (orderAddress.longitude - deliveryGuyLocation.longitude) * 0.01;
-
-        setDeliveryGuyLocation((prevLocation) => ({
-          latitude: prevLocation.latitude + latStep,
-          longitude: prevLocation.longitude + lonStep,
-        }));
+        await startTracking();
+      } catch (error) {
+        console.log("Tracking Error:", error);
       }
-    }, 3000); // Update every 3 seconds
-  };
+    };
+
+    handleTracking();
+  }, [tracking, startTracking]);
 
   useEffect(() => {
-    if (orderAddress) {
-      moveDeliveryGuy();
+    if (location?.coords) {
+      setUserLocation({
+        latitude: location.coords.latitude,
+        longitude: location.coords.longitude,
+      });
     }
-  }, [orderAddress]);
+  }, [location]);
+  useEffect(() => {
+    if (order) {
+      setUserOrder(order);
+    }
 
-  // Calculate the distance between two points (Haversine formula)
-  const haversineDistance = (
-    lat1: number,
-    lon1: number,
-    lat2: number,
-    lon2: number
-  ) => {
-    const R = 6371; // Earth radius in km
-    const dLat = (lat2 - lat1) * (Math.PI / 180);
-    const dLon = (lon2 - lon1) * (Math.PI / 180);
-    const a =
-      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-      Math.cos(lat1 * (Math.PI / 180)) *
-        Math.cos(lat2 * (Math.PI / 180)) *
-        Math.sin(dLon / 2) *
-        Math.sin(dLon / 2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    return R * c; // returns distance in km
+    console.log("order from tracking", order);
+  }, [order]);
+
+  const routeCoordinates = userLocation
+    ? [
+        deliveryGuy.location,
+        { latitude: 41.71, longitude: 44.83 },
+        { latitude: 41.72, longitude: 44.84 },
+        userLocation,
+      ]
+    : [];
+
+  const callDeliveryGuy = () => {
+    if (deliveryGuy.phoneNumber) {
+      Linking.openURL(`tel:${deliveryGuy.phoneNumber.replace(/\s+/g, "")}`);
+    }
   };
-
-  if (isLoading) {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#0000ff" />
-        <Text>Loading...</Text>
-      </View>
-    );
-  }
 
   return (
     <View style={styles.container}>
@@ -108,49 +96,48 @@ const TrackingScreen = () => {
           showsBuildings
           showsCompass
           showsUserLocation
+          showsMyLocationButton
         >
-          {/* Delivery Guy Marker */}
-          <Marker coordinate={deliveryGuyLocation} title="Delivery Guy">
+          <Marker coordinate={deliveryGuy.location} title="Delivery Guy">
             <View style={styles.deliveryMarker}>
-              <Image
-                source={{ uri: "delivery-guy-photo-url" }} // Replace with actual URL
-                style={styles.deliveryGuyPhoto}
-              />
               <Ionicons
-                name="bicycle"
-                size={30}
+                name={deliveryGuy.vehicle === "bicycle" ? "bicycle" : "car"}
+                size={10}
                 color="red"
                 style={styles.deliveryIcon}
               />
-              <Text>{userOrder?.deliveryTime}</Text>
+              <Text>{deliveryGuy.deliveryTime}</Text>
             </View>
           </Marker>
 
-          {/* User Location Marker */}
           <Marker coordinate={userLocation} title="Your Location">
             <Ionicons name="person" size={30} color="blue" />
           </Marker>
 
-          {/* Order Address Marker */}
-          {orderAddress && (
-            <Marker coordinate={orderAddress} title="Delivery Address">
+          {userOrder?.orderAddress?.location && (
+            <Marker
+              coordinate={userOrder.orderAddress.location}
+              title="Delivery Address"
+            >
               <FontAwesome name="flag" size={30} color="yellow" />
             </Marker>
           )}
 
-          {/* Route Polyline */}
-          <Polyline
-            coordinates={[deliveryGuyLocation, userLocation, orderAddress]}
-            strokeWidth={5}
-            strokeColor="orange"
-          />
+          {userLocation && (
+            <Polyline
+              coordinates={routeCoordinates}
+              strokeWidth={5}
+              strokeColor="orange"
+            />
+          )}
         </MapView>
       )}
 
-      {/* Order Info */}
       <View style={styles.orderCard}>
         <Image
-          source={{ uri: "order-image-url" }} // Replace with actual URL
+          source={{
+            uri: "https://static.vecteezy.com/system/resources/thumbnails/033/494/670/large/animated-illustration-of-foods-menu-burger-french-fries-and-soft-drink-suitable-for-foods-promotion-free-video.jpg",
+          }}
           style={styles.image}
         />
         <View style={styles.orderDetails}>
@@ -160,12 +147,11 @@ const TrackingScreen = () => {
               ? new Date(userOrder.timestamp).toLocaleString()
               : "Unknown"}
           </Text>
-          {Array.isArray(userOrder?.items) &&
-            userOrder.items.map((item: any, index: number) => (
-              <Text key={index} style={styles.orderItems}>
-                {item.quantity}x {item.name}
-              </Text>
-            ))}
+          {userOrder?.items.map((item: any, index: number) => (
+            <Text key={index} style={styles.orderItems}>
+              {item.quantity}x {item.name}
+            </Text>
+          ))}
           <Text style={styles.deliveryAddress}>
             <Text style={{ fontWeight: "bold" }}>Delivery Address: </Text>
             {userOrder?.orderAddress?.street
@@ -175,27 +161,27 @@ const TrackingScreen = () => {
         </View>
       </View>
 
-      {/* Delivery Guy Info */}
       <View style={styles.deliveryGuyCard}>
         <Image
-          source={{ uri: "delivery-guy-photo-url" }} // Replace with actual URL
+          source={{ uri: deliveryGuy.photo }}
           style={styles.deliveryGuyImage}
         />
         <View style={styles.deliveryGuyInfo}>
-          <Text style={styles.deliveryGuyName}>
-            {userOrder?.deliveryGuy?.name}
-          </Text>
+          <Text style={styles.deliveryGuyName}>{deliveryGuy.name}</Text>
           <Text style={styles.deliveryGuyVehicle}>
-            On a {userOrder?.deliveryGuy?.vehicle}
+            On a {deliveryGuy.vehicle}
           </Text>
-          <Text style={styles.deliveryGuyPhone}>
-            {userOrder?.deliveryGuy?.phoneNumber}
+          <Text style={styles.deliveryGuyPhone} onPress={callDeliveryGuy}>
+            {deliveryGuy.phoneNumber}
           </Text>
         </View>
       </View>
     </View>
   );
 };
+
+export default TrackingScreen;
+
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#f5f5f5" },
   map: { flex: 1 },
@@ -262,17 +248,4 @@ const styles = StyleSheet.create({
     color: "#007BFF",
     textDecorationLine: "underline",
   },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  noPermissionContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "#fff",
-  },
 });
-
-export default TrackingScreen;

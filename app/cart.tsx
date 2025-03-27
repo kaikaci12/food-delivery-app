@@ -13,7 +13,7 @@ import { useCart } from "@/context/CartProvider";
 import {} from "react-native";
 import { useRouter } from "expo-router";
 import { useOrder } from "@/hooks/useOrder";
-import { useLocation } from "@/hooks/useLocation";
+import { useLocation } from "@/context/LocationProvider";
 const CartScreen = () => {
   const { cart, handleAddToCart, handleRemoveFromCart } = useCart();
   const { saveOrder, loading } = useOrder();

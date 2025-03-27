@@ -15,10 +15,12 @@ import { useRouter } from "expo-router";
 import { useAuth } from "@/context/AuthProvider";
 export { ErrorBoundary } from "expo-router";
 import { CartProvider } from "@/context/CartProvider";
-import LoadingAnimation from "@/components/Loading";
-import { useLocation } from "@/hooks/useLocation";
+
 import NetInfo from "@react-native-community/netinfo";
-import RNRestart from "react-native-restart";
+
+import * as Updates from "expo-updates";
+import { LocationProvider } from "@/context/LocationProvider";
+import { useLocation } from "@/context/LocationProvider";
 
 SplashScreen.preventAutoHideAsync(); // Keep only one call
 
@@ -44,43 +46,49 @@ export default function RootLayout() {
     const unsubscribe = NetInfo.addEventListener((state) => {
       if (!state.isConnected) {
         Alert.alert("Please Connect to the Internet", "Connect and try again", [
-          { text: "Reload app", onPress: () => RNRestart.restart() },
+          {
+            text: "Reload app",
+            onPress: async () => await Updates.reloadAsync(),
+          },
         ]);
       }
     });
 
     return () => unsubscribe();
   }, []);
-
   if (!loaded) {
     return null;
   }
 
   return (
     <AuthProvider>
-      <RootLayoutNav />
+      <LocationProvider>
+        <RootLayoutNav />
+      </LocationProvider>
     </AuthProvider>
   );
 }
 
 function RootLayoutNav() {
   const { authState, loading } = useAuth();
-  const { location } = useLocation();
   const router = useRouter();
   const colorScheme = useColorScheme();
+  const { location, permissionGranted } = useLocation(); // Import from LocationProvider
 
   useEffect(() => {
     if (!loading) {
       if (!authState.token || !authState.user) {
         router.replace("/");
-      } else if (authState.token && authState.user) {
-        router.replace(location ? "/Dashboard" : "/location");
+      } else if (permissionGranted === false) {
+        router.replace("/location");
+      } else {
+        router.replace("/Dashboard");
       }
     }
   }, [authState.token, authState.user, loading, location, router]);
 
   if (loading) {
-    return <LoadingAnimation />;
+    return <ActivityIndicator />;
   }
 
   return (

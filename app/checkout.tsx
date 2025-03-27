@@ -14,6 +14,7 @@ import { useRouter } from "expo-router";
 import { useCart } from "@/context/CartProvider";
 import { useOrder } from "@/hooks/useOrder";
 import { useLocalSearchParams } from "expo-router";
+
 const paymentMethods = [
   { id: "cash", name: "Cash", icon: "cash-outline" },
   { id: "visa", name: "Visa", icon: "card-outline" },
@@ -26,6 +27,9 @@ const savedCards = [
   { id: "2", type: "Visa", last4: "1234" },
 ];
 
+const TAX_RATE = 0.08; // 8% tax
+const DELIVERY_FEE = 5.99; // Fixed delivery fee
+
 const CheckoutScreen = () => {
   const { address } = useLocalSearchParams();
   const [selectedMethod, setSelectedMethod] = useState("cash");
@@ -33,14 +37,17 @@ const CheckoutScreen = () => {
   const { calculateTotal, cart, handleClearCart } = useCart();
   const [selectedCard, setSelectedCard] = useState(savedCards[0]?.id || null);
   const [cartItems, setCartItems] = useState<any[]>([]);
-  const [total, setTotal] = useState(0);
   const [isProcessing, setIsProcessing] = useState(false);
   const router = useRouter();
 
+  // Calculate order values
+  const subtotal = calculateTotal();
+  const tax = subtotal * TAX_RATE;
+  const delivery = subtotal > 50 ? 0 : DELIVERY_FEE; // Free delivery for orders over $50
+  const total = subtotal + tax + delivery;
+
   useEffect(() => {
-    const totalAmount = calculateTotal();
     setCartItems(cart);
-    setTotal(totalAmount);
   }, [cart]);
 
   const handlePayment = async () => {
@@ -64,9 +71,10 @@ const CheckoutScreen = () => {
 
     try {
       await saveOrder({
-        id: Math.random().toString(36).substring(7), // Generate a random order ID
+        id: Math.random().toString(36).substring(7),
         items: cartItems,
         total,
+
         orderAddress: orderAddress || {
           street: "Unknown",
           city: "Unknown",
@@ -74,23 +82,15 @@ const CheckoutScreen = () => {
         },
       });
 
-      console.log("Order placed successfully:", {
-        id: Math.random().toString(36).substring(7),
-        items: cartItems,
-        total,
-        orderAddress: orderAddress || {
-          street: "Unknown",
-          city: "Unknown",
-          location: { latitude: 0, longitude: 0 },
-        },
-      });
       handleClearCart();
       Alert.alert("Success", "Your order has been placed successfully!", [
         {
-          text: "Track my Order",
-          onPress: () => {
-            router.replace("/track");
-          },
+          text: "Continue Shopping",
+          onPress: () => router.replace("/"),
+        },
+        {
+          text: "Track Order",
+          onPress: () => router.replace("/track"),
         },
       ]);
     } catch (error: any) {
@@ -103,85 +103,154 @@ const CheckoutScreen = () => {
 
   return (
     <View style={styles.container}>
+      {/* Header */}
+      <View style={styles.header}>
+        <Text style={styles.headerTitle}>Checkout</Text>
+      </View>
+
       {/* Payment Method Selection */}
-      <Text style={styles.sectionTitle}>Select Payment Method</Text>
-      <FlatList
-        horizontal
-        data={paymentMethods}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <TouchableOpacity
-            style={[
-              styles.paymentMethod,
-              selectedMethod === item.id && styles.selectedMethod,
-            ]}
-            onPress={() => setSelectedMethod(item.id)}
-          >
-            <Ionicons
-              name={item.icon as any}
-              size={24}
-              color={selectedMethod === item.id ? "#FF6B00" : "#000"}
-            />
-            <Text
+      <View style={styles.sectionContainer}>
+        <Text style={styles.sectionTitle}>Payment Method</Text>
+        <Text style={styles.sectionSubtitle}>
+          Choose your preferred payment option
+        </Text>
+        <FlatList
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          data={paymentMethods}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => (
+            <TouchableOpacity
               style={[
-                styles.methodText,
-                selectedMethod === item.id && styles.selectedMethodText,
+                styles.paymentMethod,
+                selectedMethod === item.id && styles.selectedMethod,
               ]}
+              onPress={() => setSelectedMethod(item.id)}
             >
-              {item.name}
-            </Text>
-          </TouchableOpacity>
-        )}
-        contentContainerStyle={styles.paymentMethodContainer}
-      />
+              <View style={styles.methodIconContainer}>
+                <Ionicons
+                  name={item.icon as any}
+                  size={28}
+                  color={selectedMethod === item.id ? "#FF6B00" : "#6B7280"}
+                />
+              </View>
+              <Text
+                style={[
+                  styles.methodText,
+                  selectedMethod === item.id && styles.selectedMethodText,
+                ]}
+              >
+                {item.name}
+              </Text>
+            </TouchableOpacity>
+          )}
+          contentContainerStyle={styles.paymentMethodContainer}
+        />
+      </View>
 
       {/* Saved Card Selection */}
       {(selectedMethod === "visa" || selectedMethod === "mastercard") && (
-        <View style={styles.cardContainer}>
-          <Text style={styles.sectionTitle}>Select Card</Text>
-          {savedCards.length > 0 ? (
-            <SelectDropdown
-              data={savedCards}
-              defaultValue={savedCards.find((card) => card.id === selectedCard)}
-              onSelect={(selectedItem: any) => setSelectedCard(selectedItem.id)}
-              buttonTextAfterSelection={(selectedItem: any) =>
-                `${selectedItem.type} **** ${selectedItem.last4}`
-              }
-              rowTextForSelection={(item: any) =>
-                `${item.type} **** ${item.last4}`
-              }
-              buttonStyle={styles.dropdownButton}
-              buttonTextStyle={styles.dropdownButtonText}
-              rowStyle={styles.dropdownRow}
-              rowTextStyle={styles.dropdownRowText}
-            />
-          ) : (
-            <Text style={styles.noCardsText}>No saved cards available.</Text>
-          )}
+        <View style={styles.sectionContainer}>
+          <Text style={styles.sectionTitle}>Saved Cards</Text>
+          <Text style={styles.sectionSubtitle}>
+            Select or add a payment card
+          </Text>
 
-          {/* Add New Card */}
-          <TouchableOpacity style={styles.addNewButton}>
-            <Text style={styles.addNewText}>+ ADD NEW CARD</Text>
-          </TouchableOpacity>
+          <View style={styles.cardContainer}>
+            {savedCards.length > 0 ? (
+              <SelectDropdown
+                data={savedCards}
+                defaultValue={savedCards.find(
+                  (card) => card.id === selectedCard
+                )}
+                onSelect={(selectedItem: any) =>
+                  setSelectedCard(selectedItem.id)
+                }
+                buttonTextAfterSelection={(selectedItem: any) =>
+                  `${selectedItem.type} •••• ${selectedItem.last4}`
+                }
+                rowTextForSelection={(item: any) =>
+                  `${item.type} •••• ${item.last4}`
+                }
+                buttonStyle={styles.dropdownButton}
+                buttonTextStyle={styles.dropdownButtonText}
+                rowStyle={styles.dropdownRow}
+                rowTextStyle={styles.dropdownRowText}
+                renderDropdownIcon={() => (
+                  <Ionicons name="chevron-down" size={20} color="#6B7280" />
+                )}
+              />
+            ) : (
+              <View style={styles.noCardsContainer}>
+                <Ionicons name="card-outline" size={24} color="#9CA3AF" />
+                <Text style={styles.noCardsText}>No saved cards available</Text>
+              </View>
+            )}
+
+            {/* Add New Card */}
+            <TouchableOpacity style={styles.addNewButton} onPress={() => {}}>
+              <Ionicons name="add-circle-outline" size={20} color="#FF6B00" />
+              <Text style={styles.addNewText}>Add New Card</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       )}
 
-      {/* Total & Confirm Button */}
-      <Text style={styles.totalText}>TOTAL: ${total}</Text>
-      <TouchableOpacity
-        onPress={handlePayment}
-        style={styles.confirmButton}
-        disabled={isProcessing || (selectedMethod !== "cash" && !selectedCard)}
-      >
-        {isProcessing ? (
-          <ActivityIndicator color="#FFF" />
-        ) : (
-          <Text style={styles.confirmText}>PAY & CONFIRM</Text>
-        )}
-      </TouchableOpacity>
+      {/* Order Summary */}
+      <View style={styles.sectionContainer}>
+        <Text style={styles.sectionTitle}>Order Summary</Text>
+        <View style={styles.summaryRow}>
+          <Text style={styles.summaryLabel}>Subtotal</Text>
+          <Text style={styles.summaryValue}>${subtotal.toFixed(2)}</Text>
+        </View>
+        <View style={styles.summaryRow}>
+          <Text style={styles.summaryLabel}>Tax ({TAX_RATE * 100}%)</Text>
+          <Text style={styles.summaryValue}>${tax.toFixed(2)}</Text>
+        </View>
+        <View style={styles.summaryRow}>
+          <Text style={styles.summaryLabel}>Delivery</Text>
+          <Text style={styles.summaryValue}>
+            {delivery === 0 ? "FREE" : `$${delivery.toFixed(2)}`}
+          </Text>
+        </View>
+        <View style={styles.divider} />
+        <View style={[styles.summaryRow, styles.totalRow]}>
+          <Text style={styles.totalLabel}>Total</Text>
+          <Text style={styles.totalValue}>${total.toFixed(2)}</Text>
+        </View>
+      </View>
+
+      {/* Confirm Button */}
+      <View style={styles.footer}>
+        <TouchableOpacity
+          onPress={handlePayment}
+          style={[
+            styles.confirmButton,
+            (isProcessing || (selectedMethod !== "cash" && !selectedCard)) &&
+              styles.disabledButton,
+          ]}
+          disabled={
+            isProcessing || (selectedMethod !== "cash" && !selectedCard)
+          }
+        >
+          {isProcessing ? (
+            <ActivityIndicator color="#FFF" size="small" />
+          ) : (
+            <>
+              <Text style={styles.confirmText}>Confirm Payment</Text>
+              <Text style={styles.confirmAmount}>${total.toFixed(2)}</Text>
+            </>
+          )}
+        </TouchableOpacity>
+      </View>
 
       {/* Error Message */}
-      {error && <Text style={styles.errorText}>{error}</Text>}
+      {error && (
+        <View style={styles.errorContainer}>
+          <Ionicons name="warning-outline" size={20} color="#EF4444" />
+          <Text style={styles.errorText}>{error}</Text>
+        </View>
+      )}
     </View>
   );
 };
@@ -191,109 +260,201 @@ export default CheckoutScreen;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    padding: 24,
+    backgroundColor: "#F9FAFB",
+  },
+  header: {
+    marginBottom: 32,
+  },
+  headerTitle: {
+    fontSize: 28,
+    fontWeight: "700",
+    color: "#111827",
+  },
+  sectionContainer: {
+    marginBottom: 24,
+    backgroundColor: "#FFF",
+    borderRadius: 12,
     padding: 20,
-    backgroundColor: "#F8F9FA",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 3,
+    elevation: 2,
   },
   sectionTitle: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: "600",
-    marginBottom: 10,
-    color: "#333",
+    color: "#111827",
+    marginBottom: 4,
+  },
+  sectionSubtitle: {
+    fontSize: 14,
+    color: "#6B7280",
+    marginBottom: 16,
   },
   paymentMethodContainer: {
-    marginBottom: 20,
+    paddingVertical: 8,
   },
   paymentMethod: {
     alignItems: "center",
-    padding: 15,
-    borderWidth: 1,
-    borderRadius: 10,
+    padding: 16,
+    borderWidth: 1.5,
+    borderRadius: 12,
     borderColor: "#E5E7EB",
     backgroundColor: "#FFF",
-    marginRight: 10,
-    width: 100,
+    marginRight: 12,
+    width: 110,
   },
   selectedMethod: {
     borderColor: "#FF6B00",
-    backgroundColor: "#FFEDE0",
+    backgroundColor: "#FFF8F1",
+  },
+  methodIconContainer: {
+    marginBottom: 8,
   },
   methodText: {
-    marginTop: 5,
     fontSize: 14,
-    fontWeight: "600",
-    color: "#333",
+    fontWeight: "500",
+    color: "#6B7280",
   },
   selectedMethodText: {
     color: "#FF6B00",
+    fontWeight: "600",
   },
   cardContainer: {
-    flexDirection: "row",
-    backgroundColor: "#FFF",
-    padding: 15,
-    borderRadius: 10,
-    marginBottom: 20,
-    shadowColor: "#000",
-    shadowOpacity: 0.1,
-    shadowRadius: 5,
-    elevation: 3,
+    marginTop: 8,
   },
   dropdownButton: {
     width: "100%",
-    backgroundColor: "#FFF",
-    borderRadius: 8,
+    height: 50,
+    backgroundColor: "#F3F4F6",
+    borderRadius: 10,
     borderWidth: 1,
     borderColor: "#E5E7EB",
-    padding: 10,
+    paddingHorizontal: 16,
   },
   dropdownButtonText: {
     fontSize: 16,
     textAlign: "left",
-    color: "#333",
+    color: "#111827",
   },
   dropdownRow: {
     backgroundColor: "#FFF",
     borderBottomColor: "#E5E7EB",
+    height: 50,
   },
   dropdownRowText: {
     fontSize: 16,
-    color: "#333",
+    color: "#111827",
+    paddingHorizontal: 16,
+  },
+  noCardsContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 16,
+    backgroundColor: "#F3F4F6",
+    borderRadius: 10,
+    marginBottom: 12,
+  },
+  noCardsText: {
+    color: "#6B7280",
+    marginLeft: 8,
+    fontSize: 14,
   },
   addNewButton: {
-    marginTop: 10,
+    flexDirection: "row",
     alignItems: "center",
+    justifyContent: "center",
+    padding: 12,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: "#FF6B00",
+    backgroundColor: "#FFF8F1",
   },
   addNewText: {
     color: "#FF6B00",
+    fontSize: 14,
+    fontWeight: "600",
+    marginLeft: 8,
+  },
+  summaryRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 12,
+  },
+  summaryLabel: {
+    fontSize: 14,
+    color: "#6B7280",
+  },
+  summaryValue: {
+    fontSize: 14,
+    color: "#111827",
+    fontWeight: "500",
+  },
+  divider: {
+    height: 1,
+    backgroundColor: "#E5E7EB",
+    marginVertical: 12,
+  },
+  totalRow: {
+    marginTop: 4,
+  },
+  totalLabel: {
     fontSize: 16,
+    color: "#111827",
     fontWeight: "600",
   },
-  totalText: {
-    fontSize: 20,
-    fontWeight: "bold",
-    marginVertical: 20,
-    textAlign: "center",
-    color: "#333",
+  totalValue: {
+    fontSize: 16,
+    color: "#111827",
+    fontWeight: "700",
+  },
+  footer: {
+    marginTop: "auto",
+    paddingTop: 16,
   },
   confirmButton: {
     backgroundColor: "#FF6B00",
-    padding: 15,
-    borderRadius: 10,
+    padding: 18,
+    borderRadius: 12,
+    flexDirection: "row",
     alignItems: "center",
-    justifyContent: "center",
+    justifyContent: "space-between",
+    shadowColor: "#FF6B00",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  disabledButton: {
+    backgroundColor: "#9CA3AF",
+    shadowColor: "transparent",
   },
   confirmText: {
     color: "#FFF",
     fontSize: 16,
-    fontWeight: "bold",
+    fontWeight: "600",
+  },
+  confirmAmount: {
+    color: "#FFF",
+    fontSize: 16,
+    fontWeight: "700",
+  },
+  errorContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: 16,
+    padding: 12,
+    backgroundColor: "#FEE2E2",
+    borderRadius: 8,
   },
   errorText: {
-    color: "red",
-    textAlign: "center",
-    marginTop: 10,
-  },
-  noCardsText: {
-    color: "gray",
-    textAlign: "center",
-    marginVertical: 10,
+    color: "#EF4444",
+    fontSize: 14,
+    fontWeight: "500",
+    marginLeft: 8,
   },
 });
