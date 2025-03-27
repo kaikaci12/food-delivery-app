@@ -15,15 +15,18 @@ import { UserProfile } from "@/types";
 import Search from "@/components/Search";
 import Categories from "@/components/Categories";
 import { useCart } from "@/context/CartProvider";
-import { useLocation } from "@/hooks/useLocation";
+import LogOut from "@/components/LogOut";
 import LoadingAnimation from "@/components/Loading";
 export default function TabOneScreen() {
   const [currentUser, setCurrentUser] = useState<UserProfile>();
+
   const [foodItems, setFoodItems] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [filteredFoodItems, setFilteredFoodItems] = useState([]); // Keep original data
+  const [filteredFoodItems, setFilteredFoodItems] = useState([]);
   const [category, setCategory] = useState("All");
+  const [showModal, setShowModal] = useState(false);
   const router = useRouter();
+
   const { authState } = useAuth();
   const { handleAddToCart } = useCart();
 
@@ -80,10 +83,11 @@ export default function TabOneScreen() {
       );
     }
   };
-
+  ea;
   return (
     <View style={styles.container}>
-      <HeaderBar />
+      {showModal && <LogOut />}
+      <HeaderBar setShowModal={setShowModal} showModal={showModal} />
       <Text style={styles.title}>
         Hey {currentUser?.username}, Good Afternoon!
       </Text>

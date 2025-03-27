@@ -41,6 +41,7 @@ const AuthProvider = ({ children }: any) => {
           setLoading(false);
         } else {
           console.log("uid is null");
+          setLoading(false);
         }
       } catch (error) {
         console.log(error);

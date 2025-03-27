@@ -176,6 +176,8 @@ export const LocationProvider: React.FC<{ children: React.ReactNode }> = ({
         street,
         errorMsg,
         permissionGranted,
+        checkLocationServices,
+        locationEnabled,
         loading,
         tracking,
         requestLocation,

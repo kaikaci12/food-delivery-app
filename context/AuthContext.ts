@@ -1,4 +1,3 @@
-
 import { createContext } from "react";
 
 // Define the AuthProps interface for the context
@@ -13,7 +12,7 @@ export interface AuthProps {
     username: string
   ) => Promise<void>;
   onLogin: (email: string, password: string) => Promise<void>;
-  onLogout: () => void;
+  onLogout: () => Promise<void>;
   loading: boolean;
 }
 
@@ -21,6 +20,6 @@ export const AuthContext = createContext<AuthProps>({
   authState: { token: null, user: null },
   onRegister: async () => {},
   onLogin: async () => {},
-  onLogout: () => {},
+  onLogout: async () => {},
   loading: true,
 });

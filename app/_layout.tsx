@@ -21,6 +21,7 @@ import NetInfo from "@react-native-community/netinfo";
 import * as Updates from "expo-updates";
 import { LocationProvider } from "@/context/LocationProvider";
 import { useLocation } from "@/context/LocationProvider";
+import { useOrder } from "@/hooks/useOrder";
 
 SplashScreen.preventAutoHideAsync(); // Keep only one call
 
@@ -74,18 +75,21 @@ function RootLayoutNav() {
   const router = useRouter();
   const colorScheme = useColorScheme();
   const { location, permissionGranted } = useLocation(); // Import from LocationProvider
-
+  const { order } = useOrder();
   useEffect(() => {
     if (!loading) {
       if (!authState.token || !authState.user) {
         router.replace("/");
       } else if (permissionGranted === false) {
         router.replace("/location");
+      } else if (order) {
+        console.log(order);
+        router.replace("/track");
       } else {
         router.replace("/Dashboard");
       }
     }
-  }, [authState.token, authState.user, loading, location, router]);
+  }, [authState, location]);
 
   if (loading) {
     return <ActivityIndicator />;

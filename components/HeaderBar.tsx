@@ -5,13 +5,20 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useCart } from "@/context/CartProvider";
 import { useRouter } from "expo-router";
 import { useLocation } from "@/context/LocationProvider";
-const HeaderBar = () => {
+
+interface Props {
+  showModal: boolean;
+  setShowModal: (modal: boolean) => void;
+}
+const HeaderBar = ({ setShowModal, showModal }: Props) => {
   const [cartItems, setCartItems] = useState<any[]>([]);
   const [location, setLocation] = useState<any>({});
   const { cart, handleAddToCart } = useCart();
   const { street, city } = useLocation();
   const router = useRouter();
-
+  const handleShowModal = () => {
+    setShowModal(!setShowModal);
+  };
   useEffect(() => {
     const fetchData = async () => {
       setCartItems(cart);
@@ -23,7 +30,7 @@ const HeaderBar = () => {
   return (
     <View style={styles.container}>
       {/* Menu Icon */}
-      <TouchableOpacity style={styles.menuButton}>
+      <TouchableOpacity onPress={handleShowModal} style={styles.menuButton}>
         <Feather name="menu" size={20} color="black" />
       </TouchableOpacity>
 

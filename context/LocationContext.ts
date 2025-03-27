@@ -7,6 +7,8 @@ type LocationContextType = {
   street: string | null;
   errorMsg: string | null;
   permissionGranted: boolean | null;
+  checkLocationServices: () => Promise<void>;
+  locationEnabled: boolean | null;
   loading: boolean;
   tracking: boolean;
   requestLocation: () => Promise<void>;
@@ -20,6 +22,8 @@ export const LocationContext = createContext<LocationContextType>({
   city: null,
   street: null,
   errorMsg: null,
+  checkLocationServices: async () => {},
+  locationEnabled: false,
   permissionGranted: null,
   loading: false,
   tracking: false,

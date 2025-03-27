@@ -1,9 +1,11 @@
 import { StyleSheet, Text, View, Image, TouchableOpacity } from "react-native";
-import React from "react";
+import React, { useEffect } from "react";
 import OnboardingScreen from "react-native-onboarding-swiper";
 import { useRouter } from "expo-router";
-
+import { useAuth } from "@/context/AuthProvider";
 const OnBoarding = () => {
+  useEffect(() => {});
+
   const router = useRouter();
 
   const handleDone = () => {

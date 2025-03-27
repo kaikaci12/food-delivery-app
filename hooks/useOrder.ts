@@ -3,16 +3,29 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export type Order = {
   id: string;
-  items: Array<{ id: string; name: string; quantity: number }>;
+  items: {
+    id: string;
+    name: string;
+    quantity: number;
+  }[];
   total: number;
   timestamp?: string;
   orderAddress?: {
     street?: string;
     city?: string;
     location?: {
-      latitude: number;
-      longitude: number;
-    };
+      coords: {
+        latitude: number;
+        longitude: number;
+        accuracy: number;
+        altitude: number;
+        altitudeAccuracy: number;
+        heading: number;
+        speed: number;
+      };
+      mocked: boolean;
+      timestamp: number;
+    } | null;
   };
 };
 

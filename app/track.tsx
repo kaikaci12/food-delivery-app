@@ -7,9 +7,17 @@ import { useLocation } from "@/context/LocationProvider";
 import { useOrder } from "@/hooks/useOrder";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { Order } from "@/hooks/useOrder";
+import * as Updates from "expo-updates";
 const TrackingScreen = () => {
-  const { location, tracking, requestLocation, errorMsg, startTracking } =
-    useLocation();
+  const {
+    location,
+    tracking,
+    requestLocation,
+    errorMsg,
+    startTracking,
+    checkLocationServices,
+    locationEnabled,
+  } = useLocation();
   console.log(location);
   const { order, loading } = useOrder();
 
@@ -32,24 +40,14 @@ const TrackingScreen = () => {
     },
   };
   useEffect(() => {
-    const handleTracking = async () => {
-      try {
-        if (!tracking) {
-          Alert.alert(
-            "Location Disabled",
-            "Please enable location services to track your order.",
-            [{ text: "OK", onPress: requestLocation }]
-          );
-          return;
-        }
-        await startTracking();
-      } catch (error) {
-        console.log("Tracking Error:", error);
-      }
-    };
+    checkLocationServices();
 
-    handleTracking();
-  }, [tracking, startTracking]);
+    if (locationEnabled === false) {
+      Alert.alert("Location Disabled", "Please enable location services", [
+        { text: "OK" },
+      ]);
+    }
+  }, [locationEnabled]);
 
   useEffect(() => {
     if (location?.coords) {
@@ -58,13 +56,13 @@ const TrackingScreen = () => {
         longitude: location.coords.longitude,
       });
     }
-  }, [location]);
+  }, [location, locationEnabled]);
   useEffect(() => {
     if (order) {
       setUserOrder(order);
     }
 
-    console.log("order from tracking", order);
+    console.log("order coords from tracking", order?.orderAddress?.location);
   }, [order]);
 
   const routeCoordinates = userLocation
@@ -95,7 +93,7 @@ const TrackingScreen = () => {
           }}
           showsBuildings
           showsCompass
-          showsUserLocation
+          showsUserLocation={locationEnabled ?? false}
           showsMyLocationButton
         >
           <Marker coordinate={deliveryGuy.location} title="Delivery Guy">
@@ -110,16 +108,15 @@ const TrackingScreen = () => {
             </View>
           </Marker>
 
-          <Marker coordinate={userLocation} title="Your Location">
-            <Ionicons name="person" size={30} color="blue" />
-          </Marker>
-
           {userOrder?.orderAddress?.location && (
             <Marker
-              coordinate={userOrder.orderAddress.location}
+              coordinate={{
+                latitude: userOrder.orderAddress.location.coords.latitude,
+                longitude: userOrder.orderAddress.location.coords.longitude,
+              }}
               title="Delivery Address"
             >
-              <FontAwesome name="flag" size={30} color="yellow" />
+              <FontAwesome name="flag" size={30} color="orange" />
             </Marker>
           )}
 
