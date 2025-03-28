@@ -15,6 +15,8 @@ import { useOrder } from "@/hooks/useOrder";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { Order } from "@/hooks/useOrder";
 import { useRouter } from "expo-router";
+import { Modal } from "react-native";
+import { BlurView } from "expo-blur";
 
 const TrackingScreen = () => {
   const {
@@ -32,6 +34,8 @@ const TrackingScreen = () => {
     longitude: number;
   } | null>(null);
   const [userOrder, setUserOrder] = useState<Order | null>(null);
+  const [showTrackingModal, setShowTrackingModal] = useState(true);
+  const [isLocationEnabled, setIsLocationEnabled] = useState(locationEnabled);
 
   const deliveryGuy = {
     name: "John Doe",
@@ -42,7 +46,17 @@ const TrackingScreen = () => {
     deliveryTime: "30 minutes",
     location: { latitude: 41.7151, longitude: 44.8271 },
   };
-
+  useEffect(() => {
+    const checkServices = async () => {
+      await checkLocationServices();
+      if (locationEnabled) {
+        setIsLocationEnabled(true);
+      } else {
+        setIsLocationEnabled(false);
+      }
+    };
+    checkServices();
+  }, [locationEnabled]);
   useEffect(() => {
     if (location?.coords) {
       setUserLocation({
@@ -58,12 +72,12 @@ const TrackingScreen = () => {
     }
   }, [order]);
 
-  const routeCoordinates = userLocation
+  const routeCoordinates = order?.orderAddress?.location?.coords
     ? [
         deliveryGuy.location,
         { latitude: 41.71, longitude: 44.83 },
         { latitude: 41.72, longitude: 44.84 },
-        userLocation,
+        order?.orderAddress?.location?.coords,
       ]
     : [];
 
@@ -95,7 +109,7 @@ const TrackingScreen = () => {
           }}
           showsBuildings
           showsCompass
-          showsUserLocation={locationEnabled ?? false}
+          showsUserLocation={isLocationEnabled ?? false}
           showsMyLocationButton
         >
           <Marker coordinate={deliveryGuy.location} title="Delivery Guy">
@@ -149,7 +163,7 @@ const TrackingScreen = () => {
               </Text>
               {userOrder?.items.map((item, index) => (
                 <Text key={index} style={styles.orderItems}>
-                  {item.quantity}x {item.name}
+                  {item.quantity}x {item.title}
                 </Text>
               ))}
               <Text style={styles.deliveryAddress}>
@@ -199,6 +213,39 @@ const TrackingScreen = () => {
           </Text>
         </View>
       )}
+      <Modal
+        transparent
+        animationType="slide"
+        visible={showTrackingModal}
+        onRequestClose={() => setShowTrackingModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <BlurView intensity={50} style={styles.blurView}>
+            <View style={styles.modalContainer}>
+              <Text style={styles.modalTitle}>Order Tracking</Text>
+              <Text style={styles.modalSubtitle}>
+                Your order is on the way 🚀
+              </Text>
+
+              <Image
+                source={{
+                  uri: "https://cdn-icons-png.flaticon.com/512/7702/7702470.png",
+                }}
+                style={styles.trackingImage}
+              />
+
+              <Text style={styles.modalStatus}>Estimated Time: 15 min</Text>
+
+              <TouchableOpacity
+                style={styles.closeButton}
+                onPress={() => setShowTrackingModal(false)}
+              >
+                <Text style={styles.closeButtonText}>Close</Text>
+              </TouchableOpacity>
+            </View>
+          </BlurView>
+        </View>
+      </Modal>
     </View>
   );
 };
@@ -291,5 +338,67 @@ const styles = StyleSheet.create({
     color: "blue",
     textDecorationLine: "underline",
     marginTop: 5,
+  },
+  modalOverlay: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0,0,0,0.5)",
+  },
+  blurView: {
+    flex: 1,
+    width: "100%",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  modalContainer: {
+    backgroundColor: "white",
+    borderRadius: 20,
+    padding: 25,
+    width: "85%",
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  modalTitle: {
+    fontSize: 22,
+    fontWeight: "bold",
+    marginBottom: 10,
+    color: "#333",
+  },
+  modalSubtitle: {
+    fontSize: 16,
+    color: "#666",
+    marginBottom: 20,
+    textAlign: "center",
+  },
+  trackingImage: {
+    width: 200,
+    height: 200,
+    marginVertical: 20,
+  },
+  modalStatus: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: "#FFA500",
+    marginVertical: 15,
+  },
+  closeButton: {
+    backgroundColor: "#FFA500",
+    paddingVertical: 12,
+    paddingHorizontal: 30,
+    borderRadius: 10,
+    marginTop: 15,
+  },
+  closeButtonText: {
+    color: "white",
+    fontWeight: "bold",
+    fontSize: 16,
   },
 });

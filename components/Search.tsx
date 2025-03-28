@@ -1,12 +1,26 @@
-import React from "react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { View, TextInput, StyleSheet } from "react-native";
 import { FontAwesome } from "@expo/vector-icons";
+
 interface SearchProps {
   handleSearch: (searchTerm: string) => void;
 }
+
 const Search = ({ handleSearch }: SearchProps) => {
   const [searchTerm, setSearchTerm] = useState("");
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
+
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+    }, 500);
+
+    return () => clearTimeout(timeout);
+  }, [searchTerm]);
+
+  useEffect(() => {
+    handleSearch(debouncedSearchTerm);
+  }, [debouncedSearchTerm]);
 
   return (
     <View style={styles.container}>
@@ -17,7 +31,7 @@ const Search = ({ handleSearch }: SearchProps) => {
         style={styles.icon}
       />
       <TextInput
-        onChangeText={setSearchTerm}
+        onChangeText={setSearchTerm} // Only updates local state, not triggering search immediately
         value={searchTerm}
         style={styles.input}
         placeholder="Search dishes, restaurants"
@@ -26,9 +40,7 @@ const Search = ({ handleSearch }: SearchProps) => {
     </View>
   );
 };
-
 export default Search;
-
 const styles = StyleSheet.create({
   container: {
     flexDirection: "row",

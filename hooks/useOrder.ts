@@ -5,7 +5,7 @@ export type Order = {
   id: string;
   items: {
     id: string;
-    name: string;
+    title: string;
     quantity: number;
   }[];
   total: number;

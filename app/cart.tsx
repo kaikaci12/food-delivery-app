@@ -80,7 +80,7 @@ const CartScreen = () => {
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
           <View style={styles.itemContainer}>
-            <Image source={{ uri: item.image }} style={styles.image} />
+            <Image source={{ uri: item.thumbnail }} style={styles.image} />
             <View style={styles.itemDetails}>
               <Text style={styles.itemName}>{item.name}</Text>
               <Text style={styles.itemPrice}>${item.price}</Text>

@@ -11,7 +11,7 @@ import { AntDesign } from "@expo/vector-icons";
 import HeaderBar from "@/components/HeaderBar";
 import { useAuth } from "@/context/AuthProvider";
 import { useEffect, useState } from "react";
-import { Link } from "expo-router";
+import { Link, useRouter } from "expo-router";
 import { UserProfile } from "@/types";
 import Search from "@/components/Search";
 import Categories from "@/components/Categories";
@@ -19,6 +19,7 @@ import { useCart } from "@/context/CartProvider";
 import LogOut from "@/components/LogOut";
 import LoadingAnimation from "@/components/Loading";
 import { BlurView } from "expo-blur";
+import { useOrder } from "@/hooks/useOrder";
 
 export default function Dashboard() {
   const [currentUser, setCurrentUser] = useState<UserProfile | null>(null);
@@ -29,22 +30,32 @@ export default function Dashboard() {
   const [showModal, setShowModal] = useState(false);
   const [showTrackingModal, setShowTrackingModal] = useState(false);
 
+  const router = useRouter();
   const { authState } = useAuth();
   const { handleAddToCart } = useCart();
+  const { order } = useOrder();
 
   useEffect(() => {
     if (authState.token && authState.user) {
       setCurrentUser(authState.user);
     }
   }, [authState]);
-
+  useEffect(() => {
+    if (order) {
+      setShowTrackingModal(true);
+    }
+  }, []);
   useEffect(() => {
     const fetchFoodItems = async () => {
       try {
         const response = await fetch("https://dummyjson.com/products");
         const data = await response.json();
-        setFoodItems(data.products);
-        setFilteredFoodItems(data.products);
+        const foodItemsList = data.products.filter(
+          (item: any) => item.category === "groceries"
+        );
+
+        setFoodItems(foodItemsList); // Store the full list
+        setFilteredFoodItems(foodItemsList); // Initialize filtered list
       } catch (error) {
         console.log("Error fetching food items:", error);
       } finally {
@@ -55,28 +66,13 @@ export default function Dashboard() {
   }, []);
 
   const handleSearch = (searchTerm: string) => {
-    if (!searchTerm) {
+    if (!searchTerm.trim()) {
       setFilteredFoodItems(foodItems);
     } else {
-      setFilteredFoodItems(
-        foodItems.filter((item: any) =>
-          item.name.toLowerCase().includes(searchTerm.toLowerCase())
-        )
+      const filtered = foodItems.filter((item: any) =>
+        item.title.toLowerCase().includes(searchTerm.toLowerCase())
       );
-    }
-  };
-
-  const handleCategory = (categoryName: string) => {
-    setCategory(categoryName);
-    if (categoryName === "All") {
-      setFilteredFoodItems(foodItems);
-    } else {
-      setFilteredFoodItems(
-        foodItems.filter(
-          (item: any) =>
-            item.category.toLowerCase() === categoryName.toLowerCase()
-        )
-      );
+      setFilteredFoodItems(filtered);
     }
   };
 
@@ -88,11 +84,7 @@ export default function Dashboard() {
         Hey {currentUser?.username}, Good Afternoon!
       </Text>
       <Search handleSearch={handleSearch} />
-      <Categories
-        handleCategory={handleCategory}
-        setActive={setCategory}
-        active={category}
-      />
+
       {loading ? (
         <LoadingAnimation />
       ) : (
@@ -104,9 +96,8 @@ export default function Dashboard() {
             <View style={styles.card}>
               <Link href={`/meal/${item.id}` as any}>
                 <Image source={{ uri: item.thumbnail }} style={styles.image} />
+
                 <Text style={styles.name}>{item.title}</Text>
-                <Text style={styles.location}>{item.category}</Text>
-                <Text style={styles.price}>${item.price}</Text>
               </Link>
 
               <TouchableOpacity
@@ -118,21 +109,43 @@ export default function Dashboard() {
               >
                 <AntDesign name="plus" size={18} color="white" />
               </TouchableOpacity>
+              <Text style={styles.price}>${item.price}</Text>
             </View>
           )}
         />
       )}
 
-      {/* Track Order Section */}
-      <View style={styles.trackOrderContainer}>
-        <Text style={styles.trackText}>Wanna track your order?</Text>
+      {order || showTrackingModal ? (
+        <View style={styles.trackOrderContainer}>
+          <Text style={styles.trackText}>
+            You have items ordered. Want to track your order?
+          </Text>
+          <View style={styles.buttonContainer}>
+            <TouchableOpacity
+              style={styles.trackButton}
+              onPress={() => router.replace("/track")}
+            >
+              <Text style={styles.trackButtonText}>Track Order</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.secondaryButton}
+              onPress={() => setShowTrackingModal(false)}
+            >
+              <Text style={styles.secondaryButtonText}>No thanks</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      ) : order && !showTrackingModal ? (
         <TouchableOpacity
-          style={styles.trackButton}
-          onPress={() => setShowTrackingModal(true)}
+          style={[
+            styles.trackButton,
+            { position: "absolute", right: 10, top: 100 },
+          ]}
+          onPress={() => router.replace("/track")}
         >
           <Text style={styles.trackButtonText}>Track Order</Text>
         </TouchableOpacity>
-      </View>
+      ) : null}
 
       {/* Tracking Modal */}
       <Modal
@@ -229,35 +242,13 @@ const styles = StyleSheet.create({
     right: 10,
   },
   /* Track Order Section */
-  trackOrderContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    padding: 15,
-    backgroundColor: "#fff",
-    borderRadius: 12,
-    margin: 20,
-    shadowColor: "#000",
-    shadowOpacity: 0.1,
-    shadowRadius: 5,
-    elevation: 5,
-  },
+
   trackText: {
     fontSize: 16,
     fontWeight: "bold",
     color: "#333",
   },
-  trackButton: {
-    backgroundColor: "#FFA500",
-    paddingVertical: 8,
-    paddingHorizontal: 15,
-    borderRadius: 8,
-  },
-  trackButtonText: {
-    color: "white",
-    fontWeight: "bold",
-    fontSize: 14,
-  },
+  // Removed duplicate trackButton definition
   modalOverlay: {
     flex: 1,
     justifyContent: "center",
@@ -319,5 +310,54 @@ const styles = StyleSheet.create({
     color: "white",
     fontWeight: "bold",
     fontSize: 16,
+  },
+  trackOrderContainer: {
+    flexDirection: "column",
+    position: "absolute",
+    bottom: 40,
+    left: 20,
+    right: 20,
+    justifyContent: "space-between",
+    alignItems: "center",
+    padding: 15,
+    backgroundColor: "#fff",
+    borderRadius: 12,
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
+    shadowRadius: 5,
+    elevation: 5,
+  },
+
+  buttonContainer: {
+    flexDirection: "row",
+    justifyContent: "center",
+    gap: 12,
+    width: "100%",
+  },
+  trackButton: {
+    backgroundColor: "#FFA500",
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    flex: 1,
+    alignItems: "center",
+  },
+  secondaryButton: {
+    backgroundColor: "#f0f0f0",
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    flex: 1,
+    alignItems: "center",
+  },
+  trackButtonText: {
+    color: "white",
+    fontWeight: "bold",
+    fontSize: 14,
+  },
+  secondaryButtonText: {
+    color: "#333",
+    fontWeight: "bold",
+    fontSize: 14,
   },
 });

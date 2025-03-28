@@ -8,7 +8,6 @@ import {
   StyleSheet,
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import Feather from "@expo/vector-icons/Feather";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
@@ -16,27 +15,29 @@ import { useCart } from "@/context/CartProvider";
 
 const Meal = () => {
   const { id } = useLocalSearchParams();
-  const { cart, handleAddToCart } = useCart();
+  const { handleAddToCart } = useCart();
   const router = useRouter();
   const [loading, setLoading] = useState(true);
-  const [foodData, setFoodData] = useState<any>([]);
+  const [product, setProduct] = useState<any>(null);
 
   useEffect(() => {
-    const fetchFoodItems = async () => {
+    const fetchProduct = async () => {
       try {
-        const response = await fetch(
-          "https://dummyjson.com/c/479f-e93b-4cd5-9b07"
-        );
+        const response = await fetch(`https://dummyjson.com/products/${id}`);
+        if (!response.ok) {
+          throw new Error("Failed to fetch product data");
+        }
         const data = await response.json();
-        const filteredData = data.find((item: { id: string }) => item.id == id);
-        setFoodData(filteredData);
-        setLoading(false);
+        setProduct(data);
       } catch (error) {
-        console.log(error);
+        console.error("Error fetching product:", error);
+        setProduct(null);
+      } finally {
         setLoading(false);
       }
     };
-    fetchFoodItems();
+
+    fetchProduct();
   }, [id]);
 
   if (loading) {
@@ -45,8 +46,8 @@ const Meal = () => {
     );
   }
 
-  if (!foodData) {
-    return <Text style={styles.errorText}>Food item not found</Text>;
+  if (!product) {
+    return <Text style={styles.errorText}>Product not found</Text>;
   }
 
   return (
@@ -54,27 +55,30 @@ const Meal = () => {
       <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
         <Feather name="arrow-left" size={24} color="black" />
       </TouchableOpacity>
-      <Image source={{ uri: foodData.image }} style={styles.image} />
-      <Text style={styles.title}>{foodData.name}</Text>
+      <Image source={{ uri: product.thumbnail }} style={styles.image} />
+      <Text style={styles.title}>{product.title}</Text>
+      <Text style={styles.description}>{product.description}</Text>
 
       <View style={styles.detailsRow}>
         <Text style={styles.rating}>
-          <AntDesign name="star" size={16} color="orange" /> {foodData.rating}
+          <AntDesign name="star" size={16} color="orange" />{" "}
+          {product.rating || "N/A"}
         </Text>
-        <Text style={styles.rating}>
-          <FontAwesome5 name="truck" size={16} color="orange" /> Free
+        <Text style={styles.stock}>
+          <FontAwesome5 name="box" size={16} color="orange" />{" "}
+          {product.availabilityStatus}
         </Text>
         <Text style={styles.delivery}>
           <AntDesign name="clockcircle" size={16} color="orange" />{" "}
-          {foodData.deliverytime}
+          {product.shippingInformation || "Ships soon"}
         </Text>
       </View>
 
-      <Text style={styles.price}>${foodData.price}</Text>
+      <Text style={styles.price}>${product.price}</Text>
       <TouchableOpacity
         onPress={async () => {
           try {
-            await handleAddToCart(foodData);
+            await handleAddToCart(product);
             alert("Item added to cart");
           } catch (error) {
             console.log(error);
@@ -93,7 +97,12 @@ const styles = StyleSheet.create({
   backButton: { position: "absolute", top: 20, left: 20, zIndex: 1 },
   image: { width: 220, height: 220, borderRadius: 15, marginVertical: 10 },
   title: { fontSize: 26, fontWeight: "bold", marginVertical: 5 },
-  subText: { color: "gray", fontSize: 16 },
+  description: {
+    fontSize: 16,
+    color: "gray",
+    textAlign: "center",
+    marginVertical: 10,
+  },
   detailsRow: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -101,17 +110,8 @@ const styles = StyleSheet.create({
     marginVertical: 10,
   },
   rating: { fontSize: 16, flexDirection: "row", alignItems: "center" },
+  stock: { fontSize: 16, flexDirection: "row", alignItems: "center" },
   delivery: { fontSize: 16, flexDirection: "row", alignItems: "center" },
-  sizeContainer: { flexDirection: "row", marginVertical: 10 },
-  sizeButton: {
-    padding: 12,
-    marginHorizontal: 5,
-    borderWidth: 1,
-    borderRadius: 8,
-    borderColor: "#ddd",
-    backgroundColor: "#f9f9f9",
-  },
-  selectedSize: { backgroundColor: "#FFA500", borderColor: "#FFA500" },
   price: { fontSize: 26, fontWeight: "bold", marginVertical: 10 },
   cartButton: {
     backgroundColor: "#FFA500",

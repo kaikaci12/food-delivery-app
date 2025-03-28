@@ -6,12 +6,11 @@ import { useAuth } from "@/context/AuthProvider";
 const OnBoarding = () => {
   const { authState } = useAuth();
   const router = useRouter();
-  useEffect(() => {
-    if (authState.user && authState.token) {
-      router.replace("/Dashboard");
-    }
-  }, []);
-
+  // useEffect(() => {
+  //   if (authState.user && authState.token) {
+  //     router.navigate("/Dashboard");
+  //   }
+  // }, [router]);
   const handleDone = () => {
     router.replace("/register");
   };

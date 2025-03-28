@@ -36,6 +36,7 @@ export const LocationProvider: React.FC<{ children: React.ReactNode }> = ({
     try {
       const enabled = await Location.hasServicesEnabledAsync();
       setLocationEnabled(enabled);
+      console.log("Location enabled: ", enabled);
     } catch (error) {
       console.error("Error checking location services:", error);
     }
