@@ -5,7 +5,7 @@ import {
   Image,
   FlatList,
   TouchableOpacity,
-  Modal,
+  ActivityIndicator,
 } from "react-native";
 import { AntDesign } from "@expo/vector-icons";
 import HeaderBar from "@/components/HeaderBar";
@@ -14,18 +14,17 @@ import { useEffect, useState } from "react";
 import { Link, useRouter } from "expo-router";
 import { UserProfile } from "@/types";
 import Search from "@/components/Search";
-import Categories from "@/components/Categories";
+
 import { useCart } from "@/context/CartProvider";
 import LogOut from "@/components/LogOut";
-import LoadingAnimation from "@/components/Loading";
-import { BlurView } from "expo-blur";
+
 import { useOrder } from "@/hooks/useOrder";
 
 export default function Dashboard() {
   const [currentUser, setCurrentUser] = useState<UserProfile | null>(null);
   const [foodItems, setFoodItems] = useState([]);
   const [filteredFoodItems, setFilteredFoodItems] = useState([]);
-  const [category, setCategory] = useState("All");
+
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [showTrackingModal, setShowTrackingModal] = useState(false);
@@ -44,7 +43,7 @@ export default function Dashboard() {
     if (order) {
       setShowTrackingModal(true);
     }
-  }, []);
+  }, [order]);
   useEffect(() => {
     const fetchFoodItems = async () => {
       try {
@@ -78,7 +77,6 @@ export default function Dashboard() {
 
   return (
     <View style={styles.container}>
-      {showModal && <LogOut />}
       <HeaderBar setShowModal={setShowModal} showModal={showModal} />
       <Text style={styles.title}>
         Hey {currentUser?.username}, Good Afternoon!
@@ -86,7 +84,7 @@ export default function Dashboard() {
       <Search handleSearch={handleSearch} />
 
       {loading ? (
-        <LoadingAnimation />
+        <ActivityIndicator color={"red"} size={40} />
       ) : (
         <FlatList
           data={filteredFoodItems}
@@ -146,41 +144,7 @@ export default function Dashboard() {
           <Text style={styles.trackButtonText}>Track Order</Text>
         </TouchableOpacity>
       ) : null}
-
-      {/* Tracking Modal */}
-      <Modal
-        transparent
-        animationType="slide"
-        visible={showTrackingModal}
-        onRequestClose={() => setShowTrackingModal(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <BlurView intensity={50} style={styles.blurView}>
-            <View style={styles.modalContainer}>
-              <Text style={styles.modalTitle}>Order Tracking</Text>
-              <Text style={styles.modalSubtitle}>
-                Your order is on the way 🚀
-              </Text>
-
-              <Image
-                source={{
-                  uri: "https://cdn-icons-png.flaticon.com/512/7702/7702470.png",
-                }}
-                style={styles.trackingImage}
-              />
-
-              <Text style={styles.modalStatus}>Estimated Time: 15 min</Text>
-
-              <TouchableOpacity
-                style={styles.closeButton}
-                onPress={() => setShowTrackingModal(false)}
-              >
-                <Text style={styles.closeButtonText}>Close</Text>
-              </TouchableOpacity>
-            </View>
-          </BlurView>
-        </View>
-      </Modal>
+      {showModal && <LogOut />}
     </View>
   );
 }

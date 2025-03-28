@@ -1,16 +1,16 @@
 import { StyleSheet, Text, View, Image, TouchableOpacity } from "react-native";
-import React, { useEffect } from "react";
+// import { useEffect } from "react";
 import OnboardingScreen from "react-native-onboarding-swiper";
 import { useRouter } from "expo-router";
-import { useAuth } from "@/context/AuthProvider";
+// import { useAuth } from "@/context/AuthProvider";
 const OnBoarding = () => {
-  const { authState } = useAuth();
+  // const { authState } = useAuth();
   const router = useRouter();
   // useEffect(() => {
   //   if (authState.user && authState.token) {
   //     router.navigate("/Dashboard");
   //   }
-  // }, [router]);
+  // }, [authState.user, authState.token, router]);
   const handleDone = () => {
     router.replace("/register");
   };

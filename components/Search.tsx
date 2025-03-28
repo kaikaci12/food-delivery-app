@@ -20,7 +20,7 @@ const Search = ({ handleSearch }: SearchProps) => {
 
   useEffect(() => {
     handleSearch(debouncedSearchTerm);
-  }, [debouncedSearchTerm]);
+  }, [debouncedSearchTerm, handleSearch]);
 
   return (
     <View style={styles.container}>

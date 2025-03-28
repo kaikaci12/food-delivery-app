@@ -17,17 +17,15 @@ import { Order } from "@/hooks/useOrder";
 import { useRouter } from "expo-router";
 import { Modal } from "react-native";
 import { BlurView } from "expo-blur";
-
+import { PROVIDER_GOOGLE } from "react-native-maps";
 const TrackingScreen = () => {
   const {
     location,
-    tracking,
-    requestLocation,
-    errorMsg,
+
     checkLocationServices,
     locationEnabled,
   } = useLocation();
-  const { order, loading, clearOrder } = useOrder(); // Ensure clearOrder function exists
+  const { order, clearOrder } = useOrder();
   const router = useRouter();
   const [userLocation, setUserLocation] = useState<{
     latitude: number;
@@ -56,7 +54,7 @@ const TrackingScreen = () => {
       }
     };
     checkServices();
-  }, [locationEnabled]);
+  }, [locationEnabled, checkLocationServices]);
   useEffect(() => {
     if (location?.coords) {
       setUserLocation({
@@ -93,13 +91,16 @@ const TrackingScreen = () => {
       Alert.alert("Order Received", "Thank you for confirming your order!", [
         { text: "OK", onPress: () => router.replace("/Dashboard") },
       ]);
-    } catch (error) {}
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   return (
     <View style={styles.container}>
       {userLocation && (
         <MapView
+          provider={PROVIDER_GOOGLE}
           style={styles.map}
           region={{
             latitude: userLocation.latitude,

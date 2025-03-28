@@ -5,16 +5,15 @@ import {
   View,
   TextInput,
   TouchableOpacity,
-  Alert,
 } from "react-native";
 import Fontisto from "@expo/vector-icons/Fontisto";
 import { Ionicons } from "@expo/vector-icons";
 import { Link, useRouter } from "expo-router";
-import { getAuth, signInWithEmailAndPassword } from "firebase/auth"; // Firebase import
+
 import { useAuth } from "@/context/AuthProvider";
 
 const LoginComponent = () => {
-  const { onLogin, authState } = useAuth();
+  const { onLogin } = useAuth();
   const router = useRouter();
   const [email, setEmail] = useState(""); // Email state
   const [password, setPassword] = useState(""); // Password state

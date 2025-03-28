@@ -7,11 +7,10 @@ import {
   ActivityIndicator,
   Image,
 } from "react-native";
-import MapView, { Marker, PROVIDER_GOOGLE } from "react-native-maps";
+import MapView, { PROVIDER_GOOGLE } from "react-native-maps";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useLocation } from "@/context/LocationProvider";
-import LoadingAnimation from "@/components/Loading";
 
 const LocationScreen = () => {
   const { location, errorMsg, loading, requestLocation } = useLocation();
@@ -49,7 +48,7 @@ const LocationScreen = () => {
       {errorMsg && <Text style={styles.errorText}>{errorMsg}</Text>}
 
       {loading ? (
-        <LoadingAnimation />
+        <ActivityIndicator />
       ) : location ? (
         <View style={styles.mapContainer}>
           <MapView

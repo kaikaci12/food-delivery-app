@@ -8,7 +8,7 @@ import {
   ActivityIndicator,
   Alert,
 } from "react-native";
-import SelectDropdown from "react-native-select-dropdown";
+
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useCart } from "@/context/CartProvider";
@@ -22,20 +22,15 @@ const paymentMethods = [
   { id: "paypal", name: "PayPal", icon: "logo-paypal" },
 ];
 
-const savedCards = [
-  { id: "1", type: "Mastercard", last4: "4367" },
-  { id: "2", type: "Visa", last4: "1234" },
-];
-
 const TAX_RATE = 0.08; // 8% tax
 const DELIVERY_FEE = 5.99; // Fixed delivery fee
 
 const CheckoutScreen = () => {
   const { address } = useLocalSearchParams();
   const [selectedMethod, setSelectedMethod] = useState("cash");
-  const { saveOrder, error, loading } = useOrder();
+  const { saveOrder, error } = useOrder();
   const { calculateTotal, cart, handleClearCart } = useCart();
-  const [selectedCard, setSelectedCard] = useState(savedCards[0]?.id || null);
+
   const [cartItems, setCartItems] = useState<any[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
   const router = useRouter();
@@ -51,13 +46,6 @@ const CheckoutScreen = () => {
   }, [cart]);
 
   const handlePayment = async () => {
-    if (selectedMethod === "visa" || selectedMethod === "mastercard") {
-      if (!selectedCard) {
-        Alert.alert("Error", "Please select a card.");
-        return;
-      }
-    }
-
     let orderAddress = null;
     if (address) {
       try {
@@ -108,7 +96,6 @@ const CheckoutScreen = () => {
         <Text style={styles.headerTitle}>Checkout</Text>
       </View>
 
-      {/* Payment Method Selection */}
       <View style={styles.sectionContainer}>
         <Text style={styles.sectionTitle}>Payment Method</Text>
         <Text style={styles.sectionSubtitle}>
@@ -148,55 +135,6 @@ const CheckoutScreen = () => {
         />
       </View>
 
-      {/* Saved Card Selection */}
-      {(selectedMethod === "visa" || selectedMethod === "mastercard") && (
-        <View style={styles.sectionContainer}>
-          <Text style={styles.sectionTitle}>Saved Cards</Text>
-          <Text style={styles.sectionSubtitle}>
-            Select or add a payment card
-          </Text>
-
-          <View style={styles.cardContainer}>
-            {savedCards.length > 0 ? (
-              <SelectDropdown
-                data={savedCards}
-                defaultValueByIndex={savedCards.findIndex(
-                  (card) => card.id === selectedCard
-                )}
-                onSelect={(selectedItem: any) =>
-                  setSelectedCard(selectedItem.id)
-                }
-                buttonTextAfterSelection={(selectedItem: any) =>
-                  `${selectedItem.type} •••• ${selectedItem.last4}`
-                }
-                rowTextForSelection={(item: any) =>
-                  `${item.type} •••• ${item.last4}`
-                }
-                buttonStyle={styles.dropdownButton}
-                buttonTextStyle={styles.dropdownButtonText}
-                rowStyle={styles.dropdownRow}
-                rowTextStyle={styles.dropdownRowText}
-                renderDropdownIcon={() => (
-                  <Ionicons name="chevron-down" size={20} color="#6B7280" />
-                )}
-              />
-            ) : (
-              <View style={styles.noCardsContainer}>
-                <Ionicons name="card-outline" size={24} color="#9CA3AF" />
-                <Text style={styles.noCardsText}>No saved cards available</Text>
-              </View>
-            )}
-
-            {/* Add New Card */}
-            <TouchableOpacity style={styles.addNewButton} onPress={() => {}}>
-              <Ionicons name="add-circle-outline" size={20} color="#FF6B00" />
-              <Text style={styles.addNewText}>Add New Card</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      )}
-
-      {/* Order Summary */}
       <View style={styles.sectionContainer}>
         <Text style={styles.sectionTitle}>Order Summary</Text>
         <View style={styles.summaryRow}>
@@ -224,14 +162,7 @@ const CheckoutScreen = () => {
       <View style={styles.footer}>
         <TouchableOpacity
           onPress={handlePayment}
-          style={[
-            styles.confirmButton,
-            (isProcessing || (selectedMethod !== "cash" && !selectedCard)) &&
-              styles.disabledButton,
-          ]}
-          disabled={
-            isProcessing || (selectedMethod !== "cash" && !selectedCard)
-          }
+          style={[styles.confirmButton]}
         >
           {isProcessing ? (
             <ActivityIndicator color="#FFF" size="small" />

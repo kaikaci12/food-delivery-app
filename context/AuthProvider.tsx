@@ -5,12 +5,12 @@ import { auth } from "@/firebaseConfig";
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
-  onAuthStateChanged,
   signOut,
 } from "firebase/auth";
 import { db } from "@/firebaseConfig";
 import * as SecureStore from "expo-secure-store";
-import { setDoc, doc, onSnapshot, getDoc } from "firebase/firestore";
+import { setDoc, doc, getDoc } from "firebase/firestore";
+import { useRouter } from "expo-router";
 
 const TOKEN_KEY = "myjwt";
 const UID_KEY = "userUid"; // Key for storing the user's UID in SecureStore
@@ -25,6 +25,7 @@ const AuthProvider = ({ children }: any) => {
   });
 
   const [loading, setLoading] = useState(true); // Add a loading state
+  const router = useRouter();
 
   useEffect(() => {
     const loadUser = async () => {
@@ -137,6 +138,7 @@ const AuthProvider = ({ children }: any) => {
       setAuthState({ token: null, user: null });
       await SecureStore.deleteItemAsync(TOKEN_KEY);
       await clearUidFromStorage();
+      router.navigate("/login");
     } catch (error: any) {
       console.log(error.message);
     }

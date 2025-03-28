@@ -1,23 +1,23 @@
-import { View, Text, Image, TouchableOpacity, StyleSheet } from "react-native";
+import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import React, { useState, useEffect } from "react";
 import Feather from "@expo/vector-icons/Feather";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+
 import { useCart } from "@/context/CartProvider";
 import { useRouter } from "expo-router";
 import { useLocation } from "@/context/LocationProvider";
 
 interface Props {
   showModal: boolean;
-  setShowModal: (modal: boolean) => void;
+  setShowModal: React.Dispatch<React.SetStateAction<boolean>>;
 }
 const HeaderBar = ({ setShowModal, showModal }: Props) => {
   const [cartItems, setCartItems] = useState<any[]>([]);
   const [location, setLocation] = useState<any>({});
-  const { cart, handleAddToCart } = useCart();
+  const { cart } = useCart();
   const { street, city } = useLocation();
   const router = useRouter();
   const handleShowModal = () => {
-    setShowModal(!setShowModal);
+    setShowModal((prev) => !prev);
   };
   useEffect(() => {
     const fetchData = async () => {

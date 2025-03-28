@@ -13,15 +13,12 @@ import { useColorScheme } from "@/components/useColorScheme";
 import { ActivityIndicator, Alert, StatusBar } from "react-native";
 import { useRouter } from "expo-router";
 import { useAuth } from "@/context/AuthProvider";
-export { ErrorBoundary } from "expo-router";
 import { CartProvider } from "@/context/CartProvider";
-
-import NetInfo from "@react-native-community/netinfo";
-
-import * as Updates from "expo-updates";
 import { LocationProvider } from "@/context/LocationProvider";
+import NetInfo from "@react-native-community/netinfo";
+import * as Updates from "expo-updates";
 import { useLocation } from "@/context/LocationProvider";
-import { useOrder } from "@/hooks/useOrder";
+export { ErrorBoundary } from "expo-router";
 
 SplashScreen.preventAutoHideAsync(); // Keep only one call
 
@@ -74,25 +71,23 @@ function RootLayoutNav() {
   const { authState, loading } = useAuth();
   const router = useRouter();
   const colorScheme = useColorScheme();
-  const { location, permissionGranted } = useLocation(); // Import from LocationProvider
-  const { order } = useOrder();
+  const { permissionGranted } = useLocation();
+
   useEffect(() => {
     if (!loading) {
       if (!authState.token || !authState.user) {
-        router.replace("/");
+        router.replace("/login");
       } else if (permissionGranted === false) {
         router.replace("/location");
-      } else if (order) {
-        console.log(order);
-        router.replace("/track");
       } else {
         router.replace("/Dashboard");
       }
     }
-  }, [authState, location]);
+  }, [authState?.token, authState?.user, permissionGranted, loading, router]);
 
-  if (loading) {
-    return <ActivityIndicator />;
+  // Ensure app is fully loaded before rendering
+  if (loading || authState === null || permissionGranted === undefined) {
+    return <ActivityIndicator />; // Prevents rendering and navigation until data is available
   }
 
   return (
@@ -108,7 +103,6 @@ function RootLayoutNav() {
           <Stack.Screen name="cart" options={{ headerShown: false }} />
           <Stack.Screen name="checkout" options={{ headerShown: false }} />
           <Stack.Screen name="track" options={{ headerShown: false }} />
-          <Stack.Screen name="modal" options={{ presentation: "modal" }} />
           <StatusBar hidden />
         </Stack>
       </CartProvider>

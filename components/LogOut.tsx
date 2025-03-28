@@ -11,12 +11,12 @@ import {
 import { MaterialIcons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useAuth } from "@/context/AuthProvider";
-import { useRouter } from "expo-router";
+
 const LogOut = () => {
   const [showModal, setShowModal] = useState(false);
   const [scaleValue] = useState(new Animated.Value(1));
   const [opacityValue] = useState(new Animated.Value(1));
-  const router = useRouter();
+
   const { onLogout } = useAuth();
 
   const handlePressIn = () => {
@@ -60,7 +60,6 @@ const LogOut = () => {
     try {
       await onLogout();
       setShowModal(false);
-      router.replace("/login");
     } catch (error) {
       alert(error);
     }
@@ -138,7 +137,9 @@ export default LogOut;
 const styles = StyleSheet.create({
   container: {
     alignItems: "center",
+    position: "absolute",
     justifyContent: "center",
+    bottom: 40,
   },
   animatedContainer: {
     width: "100%",

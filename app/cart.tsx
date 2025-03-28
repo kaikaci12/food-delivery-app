@@ -10,15 +10,15 @@ import {
   TextInput,
 } from "react-native";
 import { useCart } from "@/context/CartProvider";
-import {} from "react-native";
+
 import { useRouter } from "expo-router";
-import { useOrder } from "@/hooks/useOrder";
+
 import { useLocation } from "@/context/LocationProvider";
 const CartScreen = () => {
   const { cart, handleAddToCart, handleRemoveFromCart } = useCart();
-  const { saveOrder, loading } = useOrder();
+
   const [cartItems, setCartItems] = useState<any[]>([]);
-  const [orderLoading, setOrderLoading] = useState(false);
+
   const [deliveryAddress, setDeliveryAddress] = useState<any>(null);
   const { location, city, street } = useLocation();
   const [total, setTotal] = useState(0);
@@ -39,11 +39,9 @@ const CartScreen = () => {
   }, [cart]);
 
   const handleOrder = async () => {
-    setOrderLoading(true);
-
     if (!deliveryAddress) {
       Alert.alert("Error", "Please select a delivery address.");
-      setOrderLoading(false);
+
       return;
     }
 
@@ -63,7 +61,7 @@ const CartScreen = () => {
         location: location,
       });
     }
-  }, [location, city, street]);
+  }, [location, city, street, deliveryAddress]);
   return (
     <View style={styles.container}>
       {/* Header */}

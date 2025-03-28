@@ -1,4 +1,4 @@
-import React, { createContext, useState, useEffect, useContext } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Location from "expo-location";
 import { LocationContext } from "./LocationContext";
@@ -18,9 +18,8 @@ export const LocationProvider: React.FC<{ children: React.ReactNode }> = ({
     null
   );
   const [loading, setLoading] = useState(false);
-  const [tracking, setTracking] = useState(false);
-  const [subscription, setSubscription] =
-    useState<Location.LocationSubscription | null>(null);
+
+  useState<Location.LocationSubscription | null>(null);
 
   useEffect(() => {
     checkPermission();
@@ -101,8 +100,8 @@ export const LocationProvider: React.FC<{ children: React.ReactNode }> = ({
           })
         );
       }
-    } catch (error) {
-      setErrorMsg("Unable to retrieve location.");
+    } catch (error: any) {
+      setErrorMsg(error);
     }
     setLoading(false);
   };
@@ -118,7 +117,7 @@ export const LocationProvider: React.FC<{ children: React.ReactNode }> = ({
         checkLocationServices,
         locationEnabled,
         loading,
-        tracking,
+
         requestLocation,
       }}
     >

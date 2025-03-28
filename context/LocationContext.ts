@@ -10,7 +10,7 @@ type LocationContextType = {
   checkLocationServices: () => Promise<void>;
   locationEnabled: boolean | null;
   loading: boolean;
-  tracking: boolean;
+
   requestLocation: () => Promise<void>;
 };
 
@@ -24,6 +24,6 @@ export const LocationContext = createContext<LocationContextType>({
   locationEnabled: false,
   permissionGranted: null,
   loading: false,
-  tracking: false,
+
   requestLocation: async () => {},
 });
