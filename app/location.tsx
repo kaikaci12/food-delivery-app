@@ -8,12 +8,18 @@ import {
   Image,
 } from "react-native";
 import MapView, { PROVIDER_GOOGLE } from "react-native-maps";
-import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
+// import { useRouter } from "expo-router";
 import { useLocation } from "@/context/LocationProvider";
 
 const LocationScreen = () => {
-  const { location, errorMsg, loading, requestLocation } = useLocation();
+  const { location, errorMsg, loading, requestLocation } = useLocation() as {
+    location: { coords: { latitude: number; longitude: number } } | null;
+    errorMsg: string | { message?: string } | null;
+    loading: boolean;
+    requestLocation: () => void;
+  };
   const router = useRouter();
 
   return (
@@ -44,8 +50,13 @@ const LocationScreen = () => {
       <Text style={styles.infoText}>
         This app will access your location {"\n"} only while using the app.
       </Text>
-
-      {errorMsg && <Text style={styles.errorText}>{errorMsg}</Text>}
+      {errorMsg && (
+        <Text style={styles.errorText}>
+          {typeof errorMsg === "string"
+            ? errorMsg
+            : errorMsg.message || String(errorMsg)}
+        </Text>
+      )}
 
       {loading ? (
         <ActivityIndicator />

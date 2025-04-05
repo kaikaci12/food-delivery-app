@@ -34,7 +34,7 @@ const TrackingScreen = () => {
   const [userOrder, setUserOrder] = useState<Order | null>(null);
   const [showTrackingModal, setShowTrackingModal] = useState(true);
   const [isLocationEnabled, setIsLocationEnabled] = useState(locationEnabled);
-
+  console.log(userLocation);
   const deliveryGuy = {
     name: "John Doe",
     photo:

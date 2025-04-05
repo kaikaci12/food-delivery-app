@@ -37,7 +37,6 @@ const LoginComponent = () => {
     try {
       await onLogin(email, password);
       alert("Logged In Successfully ✅");
-      router.replace("/location");
     } catch (error: any) {
       const errorMessage = error.message || "An unexpected error occurred.";
 

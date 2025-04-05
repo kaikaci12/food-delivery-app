@@ -109,6 +109,7 @@ const AuthProvider = ({ children }: any) => {
         token: await user.getIdToken(),
         user: userProfile,
       });
+      router.push("/Dashboard");
     } catch (error: any) {
       console.log(error.message);
       throw new Error(error.message);
@@ -127,6 +128,7 @@ const AuthProvider = ({ children }: any) => {
       await saveUidToStorage(userCredentials.user.uid);
 
       await fetchUserData(userCredentials.user.uid);
+      router.push("/Dashboard"); // Redirect to home after successful login
     } catch (error: any) {
       throw new Error(error.message);
     }

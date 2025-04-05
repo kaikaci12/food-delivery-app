@@ -71,19 +71,26 @@ function RootLayoutNav() {
   const { authState, loading } = useAuth();
   const router = useRouter();
   const colorScheme = useColorScheme();
-  const { permissionGranted } = useLocation();
+  const { permissionGranted, location } = useLocation();
 
   useEffect(() => {
     if (!loading) {
       if (!authState.token || !authState.user) {
         router.replace("/login");
-      } else if (permissionGranted === false) {
+      } else if (permissionGranted === false || !location) {
         router.replace("/location");
       } else {
         router.replace("/Dashboard");
       }
     }
-  }, [authState?.token, authState?.user, permissionGranted, loading, router]);
+  }, [
+    authState?.token,
+    authState?.user,
+    permissionGranted,
+    loading,
+    router,
+    location,
+  ]);
 
   // Ensure app is fully loaded before rendering
   if (loading || authState === null || permissionGranted === undefined) {
